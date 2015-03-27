@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/picorg.iml" filepath="$PROJECT_DIR$/.idea/picorg.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/galrev.iml" filepath="$PROJECT_DIR$/.idea/galrev.iml" />
     </modules>
   </component>
 </project>
