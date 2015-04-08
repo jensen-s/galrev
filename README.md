@@ -1,2 +1,2 @@
-# picorg
-Tool to organize your pictures
+# galrev
+Tool to review your image gallery
