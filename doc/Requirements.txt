@@ -1,0 +1,27 @@
+Purpose:
+========
+
+Aim of the software is to allow users to review image files. These files may be freshly imported from a digital camera.
+The definition of a review consists of one or more directories which contain the image files (configuration is called
+review set).
+When a review is started, the user is guided through the set of images and may decide whether the file is accepted,
+deleted directly or marked for later deletion. Deletion can bei either a hard delete or moving a file to an archive
+directory. A review may be committed, which means that the deletion of marked files will be carried out.
+When the software is restarted, it will automatically search for new files in the directories of the active review set.
+This will also be done, if the review has been committed in a previous session.
+
+Requirements
+============
+
+
+- Define Review sets
+  * Name
+  * List of directories
+  * List of files in directories
+  * File list update in background
+  * Files can be in a state:
+    * New
+    * Marked for deletion
+    * Deleted
+    * Lost (available in previous session)
+- One Review active at a time
