@@ -13,7 +13,6 @@ This will also be done, if the review has been committed in a previous session.
 Requirements
 ============
 
-
 - Define Review sets
   * Name
   * List of directories
@@ -24,4 +23,31 @@ Requirements
     * Marked for deletion
     * Deleted
     * Lost (available in previous session)
+- Delete Review set
+- Automatically open new review set dialog when no set is defined
+- Drag and Drop support (Drag directories to review set)
+- Keyboard support
 - One Review active at a time
+- Load directory structure asynchronously
+- Update review set based on newly found files
+- Screen layout
+===============================================
+| Toolbar      |                           PRG|
+|              |                              |
+| TreeView     |                              |
+|              |                              |
+|              |       IMAGE                  |
+|              |                              |
+|              |                              |
+|              |                              |
+===============================================
+
+
+
+
+Entities
+========
+ReviewSet
+Directory
+ImageFile
+ConfigurationEntry
