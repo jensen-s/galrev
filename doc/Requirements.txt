@@ -20,6 +20,7 @@ Requirements
   * File list update in background
   * Files can be in a state:
     * New
+    * Reviewed
     * Marked for deletion
     * Deleted
     * Lost (available in previous session)
@@ -51,3 +52,4 @@ ReviewSet
 Directory
 ImageFile
 ConfigurationEntry
+

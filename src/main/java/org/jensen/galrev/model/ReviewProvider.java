@@ -29,4 +29,28 @@ public class ReviewProvider {
             }
         });
     }
+
+    public ReviewSet createNewReviewSet(){
+        return new ReviewSet();
+    }
+
+    public ReviewSet mergeReviewSet(ReviewSet toMerge){
+        ReviewSet result = evaluateTransaction(new TransactionAdapter<ReviewSet>(){
+            @Override
+            public ReviewSet evaluate(EntityManager em) {
+                System.out.println("In eval");
+                ReviewSet result ;
+                if (toMerge.getId() == 0){
+                    System.out.println("Persist");
+                    em.persist(toMerge);
+                    result = toMerge;
+                }else{
+                    System.out.println("merge");
+                    result = em.merge(toMerge);
+                }
+                return result;
+            }
+        });
+        return result;
+    }
 }

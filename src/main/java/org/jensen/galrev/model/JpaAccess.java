@@ -15,16 +15,19 @@ public class JpaAccess {
         JpaAccess.persistenceUnit = persistenceUnit;
     }
 
-    protected static <T> T evaluateTransaction(ITransaction<T> trans){
+    protected static <T> T evaluateTransaction(ITransaction<T> trans) throws PersistenceException{
         EntityManager em = createEntityManager();
         T result = null;
         EntityTransaction trs = em.getTransaction();
+        trs.begin();
         try{
             result = trans.evaluate(em);
+            em.getTransaction().commit();
         }catch (PersistenceException pe){
             if (trs != null){
                 trs.rollback();
             }
+            throw pe;
         }
         return result;
     }
