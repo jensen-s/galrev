@@ -1,5 +1,6 @@
 package org.jensen.galrev.model;
 
+import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
 
@@ -91,6 +92,15 @@ public class ReviewProvider {
                     dir = em.find(RepositoryDir.class, dir.getId());
                     em.remove(dir);
                 }
+            }
+        });
+    }
+
+    public ImageFile mergeFile(ImageFile imageFile) {
+        return evaluateTransaction(new TransactionAdapter<ImageFile>() {
+            @Override
+            public ImageFile evaluate(EntityManager em) {
+                return em.merge(imageFile);
             }
         });
     }

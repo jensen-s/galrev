@@ -83,7 +83,8 @@ public class ReviewProviderTest {
     @Test
     public void testImageFiles(){
         ReviewSet set = provider.createNewReviewSet();
-        set.setName("TestReview");
+        String testReview = "TestReview";
+        set.setName(testReview);
         set=provider.mergeReviewSet(set);
         String firstDir = "/first/Directory";
         String secondDir = "/second/Directory";
@@ -104,7 +105,14 @@ public class ReviewProviderTest {
         ImageFile if1 = findFileByName(files, file1);
         findFileByName(files, file2);
         findFileByName(files, file3);
-        assertThat(if1.getState(),is(FileState.NEW));
+        assertThat(if1.getState(), is(FileState.NEW));
+
+        if1.setState(FileState.MARKED_FOR_DELETION);
+        provider.mergeFile(if1);
+        set=findByName(provider.getAllReviewSets(), testReview);
+        RepositoryDir foundDir = findByPath(set.getDirectories(), firstDir);
+        ImageFile foundFile = findFileByName(foundDir.getFiles(), file1);
+        assertThat(foundFile.getState(), is(FileState.MARKED_FOR_DELETION));
 
     }
 
