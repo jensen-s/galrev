@@ -31,6 +31,7 @@ Requirements
 - One Review active at a time
 - Load directory structure asynchronously
 - Update review set based on newly found files
+- Set exif tags
 - Screen layout
 ===============================================
 | Toolbar      |                           PRG|

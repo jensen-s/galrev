@@ -3,6 +3,7 @@ package org.jensen.galrev.model;
 import javax.persistence.*;
 
 /**
+ * Helper class to provide transaction handling, persistence unit configuration, etc.
  * Created by jensen on 09.04.15.
  */
 public class JpaAccess {
@@ -17,19 +18,30 @@ public class JpaAccess {
 
     protected static <T> T evaluateTransaction(ITransaction<T> trans) throws PersistenceException{
         EntityManager em = createEntityManager();
-        T result = null;
+        final T result;
         EntityTransaction trs = em.getTransaction();
         trs.begin();
         try{
             result = trans.evaluate(em);
             em.getTransaction().commit();
         }catch (PersistenceException pe){
-            if (trs != null){
-                trs.rollback();
-            }
+            trs.rollback();
             throw pe;
         }
         return result;
+    }
+
+    protected static <T> void transaction(ITransaction<T> trans) throws PersistenceException{
+        EntityManager em = createEntityManager();
+        EntityTransaction trs = em.getTransaction();
+        trs.begin();
+        try{
+            trans.run(em);
+            em.getTransaction().commit();
+        }catch (PersistenceException pe) {
+            trs.rollback();
+            throw pe;
+        }
     }
 
     private static EntityManager createEntityManager(){

@@ -1,14 +1,16 @@
 package org.jensen.galrev.model;
 
+import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import static org.jensen.galrev.model.JpaAccess.evaluateTransaction;
+import static org.jensen.galrev.model.JpaAccess.*;
 import java.util.List;
 
 /**
+ * Data Access for GalleryReview entities
  * Created by jensen on 09.04.15.
  */
 public class ReviewProvider {
@@ -34,6 +36,32 @@ public class ReviewProvider {
         return new ReviewSet();
     }
 
+    public List<RepositoryDir> getAllRepositoryDirs(){
+        List<RepositoryDir> result = evaluateTransaction(new TransactionAdapter<List<RepositoryDir>>(){
+            @Override
+            public List<RepositoryDir> evaluate(EntityManager em) {
+                TypedQuery<RepositoryDir> q = em.createQuery("Select rd from RepositoryDir rd", RepositoryDir.class);
+                return q.getResultList();
+            }
+        });
+        return result;
+    }
+
+
+    public List<RepositoryDir> getUnlinkedRepositoryDirs(){
+        List<RepositoryDir> result = evaluateTransaction(new TransactionAdapter<List<RepositoryDir>>(){
+            @Override
+            public List<RepositoryDir> evaluate(EntityManager em) {
+                TypedQuery<RepositoryDir> q = em.createQuery("Select rd from RepositoryDir rd where " +
+                        "not exists (select 1 from ReviewSet rs where rd member of rs.directories)", RepositoryDir.class);
+                return q.getResultList();
+            }
+        });
+        return result;
+    }
+
+
+
     public ReviewSet mergeReviewSet(ReviewSet toMerge){
         ReviewSet result = evaluateTransaction(new TransactionAdapter<ReviewSet>(){
             @Override
@@ -52,5 +80,18 @@ public class ReviewProvider {
             }
         });
         return result;
+    }
+
+    public void cleanUnlinked() {
+        transaction(new TransactionAdapter<Object>() {
+            @Override
+            public void run(EntityManager em) {
+                List<RepositoryDir> unlinkedDirs = getUnlinkedRepositoryDirs();
+                for (RepositoryDir dir : unlinkedDirs) {
+                    dir = em.find(RepositoryDir.class, dir.getId());
+                    em.remove(dir);
+                }
+            }
+        });
     }
 }

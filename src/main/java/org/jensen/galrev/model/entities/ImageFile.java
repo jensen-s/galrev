@@ -4,11 +4,15 @@ import javax.persistence.*;
 import java.util.List;
 
 /**
+ * Entity representing one file of a directory being part of an review set
  * Created by jensen on 09.04.15.
  */
 @Entity
 @Table(name = "image_file")
+@SequenceGenerator(name = ImageFile.SEQ_ID, sequenceName = ImageFile.SEQ_NAME)
 public class ImageFile {
+    protected static final String SEQ_NAME = DbConstants.SEQ_PREFIX + "image_file_id";
+    protected static final String SEQ_ID = DbConstants.SEQ_PREFIX + "ImageFile";
 
     private long id;
     private String filename;
@@ -16,6 +20,7 @@ public class ImageFile {
 
     @Id
     @Column(name="id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = SEQ_ID)
     public long getId() {
         return id;
     }
