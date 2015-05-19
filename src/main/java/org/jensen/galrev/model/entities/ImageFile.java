@@ -8,7 +8,7 @@ import java.util.List;
  * Created by jensen on 09.04.15.
  */
 @Entity
-@Table(name = "image_file")
+@Table(name = DbConstants.TABLE_PREFIX+"image_file")
 @SequenceGenerator(name = ImageFile.SEQ_ID, sequenceName = ImageFile.SEQ_NAME)
 public class ImageFile {
     protected static final String SEQ_NAME = DbConstants.SEQ_PREFIX + "image_file_id";
@@ -46,5 +46,30 @@ public class ImageFile {
 
     public void setState(FileState state) {
         this.state = state;
+    }
+
+    @Override
+    public String toString() {
+        return "ImageFile{" +
+                "filename='" + filename + '\'' +
+                ", id=" + id +
+                ", state=" + state +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        ImageFile imageFile = (ImageFile) o;
+
+        return id == imageFile.id;
+
+    }
+
+    @Override
+    public int hashCode() {
+        return (int) (id ^ (id >>> 32));
     }
 }
