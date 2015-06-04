@@ -31,6 +31,7 @@ Requirements
 - One Review active at a time
 - Load directory structure asynchronously
 - Update review set based on newly found files
+- Detect file type FileTypeDetector
 - Set exif tags
 - Screen layout
 ===============================================
@@ -54,3 +55,17 @@ Directory
 ImageFile
 ConfigurationEntry
 
+
+
+
+====
+Strategy for File crawling:
+- Start with directory
+- Read files recursively
+- Add always a set of fixed size to database
+
+Strategy for Review Set check
+- When started, current review set is checked for being up to date
+- Try to locate all files in Review Set.
+    * If an image file is not present, any more, it is marked as lost
+    * For each directory compare content with database set. If files are new, they are added
