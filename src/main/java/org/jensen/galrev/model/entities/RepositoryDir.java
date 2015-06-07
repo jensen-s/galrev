@@ -1,5 +1,8 @@
 package org.jensen.galrev.model.entities;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import javax.persistence.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,6 +23,7 @@ public class RepositoryDir {
     private String path;
     
     private List<ImageFile> files;
+    private Logger logger = LogManager.getLogger();
 
     @Id
     @Column(name = "id")
@@ -59,7 +63,7 @@ public class RepositoryDir {
 
 
     public ImageFile addFile(String name){
-
+        logger.debug("add file " + name);
         ImageFile newFile = new ImageFile();
         newFile.setState(FileState.NEW);
         newFile.setFilename(name);

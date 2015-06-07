@@ -1,5 +1,7 @@
 package org.jensen.galrev.model;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
@@ -8,7 +10,11 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import static org.jensen.galrev.model.JpaAccess.*;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Data Access for GalleryReview entities
@@ -16,6 +22,7 @@ import java.util.List;
  */
 public class ReviewProvider {
     private static ReviewProvider instance = new ReviewProvider();
+    private Logger logger = LogManager.getLogger();
 
 
     public static ReviewProvider getInstance() {
@@ -64,17 +71,18 @@ public class ReviewProvider {
 
 
     public ReviewSet mergeReviewSet(ReviewSet toMerge){
+        logger.debug("Merge set " + toMerge);
         ReviewSet result = evaluateTransaction(new TransactionAdapter<ReviewSet>(){
             @Override
             public ReviewSet evaluate(EntityManager em) {
-                System.out.println("In eval");
+                logger.debug("In eval");
                 ReviewSet result ;
                 if (toMerge.getId() == 0){
-                    System.out.println("Persist");
+                    logger.debug("Persist");
                     em.persist(toMerge);
                     result = toMerge;
                 }else{
-                    System.out.println("merge");
+                    logger.debug("merge");
                     result = em.merge(toMerge);
                 }
                 return result;
@@ -97,6 +105,7 @@ public class ReviewProvider {
     }
 
     public ImageFile mergeFile(ImageFile imageFile) {
+        logger.debug("Merge file " + imageFile);
         return evaluateTransaction(new TransactionAdapter<ImageFile>() {
             @Override
             public ImageFile evaluate(EntityManager em) {
@@ -104,4 +113,19 @@ public class ReviewProvider {
             }
         });
     }
+
+    /**
+     * Adds a new Repository directory to the given review set and adds all files to the directory. No check will be done
+     * whether the files are actually located below the base directory and whether they are files
+     * @param set the review set
+     * @param baseDir the base directory to be transformed to a new repository directory
+     * @param files the files to be added
+     */
+    public void addFileList(ReviewSet set, Path baseDir, List<Path> files){
+        logger.debug("About to add " + files.size()+ " files to " + set);
+        RepositoryDir rd = set.addDirectory(baseDir);
+        files.stream().map(f -> rd.addFile(f.toAbsolutePath().toString())).forEach(imf -> mergeFile(imf));
+        mergeReviewSet(set);
+    }
+
 }

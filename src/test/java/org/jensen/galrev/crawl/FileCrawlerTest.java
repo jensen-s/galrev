@@ -20,80 +20,30 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by jensen on 21.05.15.
  */
-public class FileCrawlerTest {
+public class FileCrawlerTest extends PhysicalFileTest {
+    private static final int MIN_FILES_TOP_DIR = 10;
+    private static final int MAX_FILES_PER_DIR = 30;
 
-    private String testBaseDir="testData";
-    private Random rnd;
-    private int totalFiles;
     private TestResultListener resultListener;
+    private String testBaseDir;
 
     @Before
-    public void setUp() throws IOException{
-        File baseDir = new File(testBaseDir);
-        if (baseDir.exists()){
-            deleteBaseDir();
-        }
-        rnd = new java.util.Random();
-        baseDir.mkdir();
-        totalFiles = createTestFiles(baseDir.getAbsolutePath(), 10, 20);
-        System.out.println("Create total files: " + totalFiles);
+    public void setUp() throws IOException {
+        testBaseDir = super.setUp(MIN_FILES_TOP_DIR, MAX_FILES_PER_DIR);
         resultListener = new TestResultListener();
     }
 
-
     @Test
     public void testCrawl() throws Exception {
+        long start = System.currentTimeMillis();
         FileCrawler crawler = new FileCrawler(resultListener);
         final int updateFrequency = 13;
         crawler.setUpdateFrequency(updateFrequency);
-        crawler.crawl(new File(testBaseDir));
+        crawler.crawl(Paths.get(testBaseDir));
         assertTrue(resultListener.getMaxReported() <= updateFrequency);
         assertThat(resultListener.getTotalFiles().size(), is(totalFiles));
-    }
-
-    @After
-    public void tearDown() throws IOException {
-        deleteBaseDir();
-    }
-
-    private int createTestFiles(String path, int minFiles, int maxFiles) throws IOException{
-        int files = minFiles + Math.abs(rnd.nextInt()) % (maxFiles - minFiles);
-        int totalFiles = files;
-        for (int i=0; i < files; i++){
-            if (i%2 == 0){
-                createFile (new File(path,"file"+i+".jpg"));
-            }else{
-                File subDir = new File(path, "dir"+i);
-                subDir.mkdir();
-                totalFiles += createTestFiles(subDir.getAbsolutePath(), 0, files-1);
-            }
-        }
-        return totalFiles;
-    }
-
-    private void createFile(File file) throws IOException {
-        try(PrintWriter pw = new PrintWriter(new FileWriter(file))){
-            pw.append(file.getName());
-        }
-    }
-
-    private void deleteBaseDir() throws IOException {
-        Path directory = Paths.get(testBaseDir);
-
-        Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-
-        });
+        long duration = System.currentTimeMillis() - start;
+        System.out.println("Duration for " + totalFiles+" files: " + duration+" ms");
     }
 
 }

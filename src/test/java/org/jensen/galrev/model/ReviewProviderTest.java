@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -113,6 +114,29 @@ public class ReviewProviderTest {
         RepositoryDir foundDir = findByPath(set.getDirectories(), firstDir);
         ImageFile foundFile = findFileByName(foundDir.getFiles(), file1);
         assertThat(foundFile.getState(), is(FileState.MARKED_FOR_DELETION));
+
+    }
+
+    @Test
+    public void testAddFileList(){
+        ReviewSet rs = provider.createNewReviewSet();
+        rs.setName("Test set");
+        provider.mergeReviewSet(rs);
+        final String base = "/test/path/";
+        Path baseDir = Paths.get(base);
+        List<Path> files = new ArrayList<>();
+        files.add(Paths.get(base+"file1.fl"));
+        files.add(Paths.get(base + "file2.fl"));
+        files.add(Paths.get(base + "file3.fl"));
+        files.add(Paths.get(base + "file4.fl"));
+        files.add(Paths.get(base + "file5.fl"));
+        provider.addFileList(rs, baseDir, files);
+
+        ReviewSet rs2 = provider.getAllReviewSets().get(0);
+        List<RepositoryDir> dir = rs2.getDirectories();
+        assertThat(dir.size(), is(1));
+        List<ImageFile> imageFiles = dir.get(0).getFiles();
+        assertThat(imageFiles.size(), is(files.size()));
 
     }
 

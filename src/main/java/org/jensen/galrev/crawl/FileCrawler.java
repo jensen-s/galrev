@@ -1,6 +1,13 @@
 package org.jensen.galrev.crawl;
 
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,6 +18,7 @@ public class FileCrawler {
     private int updateFrequency;
     private ICrawlResultListener resultListener;
     private List<CrawledEntity> resultPool = new ArrayList<>();
+    private Logger logger = LogManager.getLogger();
 
     public FileCrawler(ICrawlResultListener resultListener){
         this.resultListener = resultListener;
@@ -24,25 +32,29 @@ public class FileCrawler {
      * Crawls for image files in the given directory
      * @param startDirectory The starting directory. Must be - of course - a directory
      */
-    public void crawl(File startDirectory){
-        if (startDirectory.isDirectory()){
-            crawlDir(startDirectory);
+    public void crawl(Path startDirectory){
+        if (Files.isDirectory(startDirectory)){
+            try {
+                crawlDir(startDirectory);
+            } catch (IOException e) {
+                logger.error("Error reading files", e);
+            }
         }
         if (!resultPool.isEmpty()){
             resultListener.filesLocated(resultPool);
         }
     }
 
-    private void crawlDir(File dir) {
-        for (File aFile: dir.listFiles()){
+    private void crawlDir(Path dir) throws IOException {
+        for (Path aFile: Files.newDirectoryStream(dir)){
             addResult(aFile);
-            if (aFile.isDirectory()){
+            if (Files.isDirectory(aFile)){
                 crawlDir(aFile);
             }
         }
     }
 
-    private void addResult(File aFile) {
+    private void addResult(Path aFile) {
         CrawledEntity entity = new CrawledEntity(aFile);
         resultPool.add(entity);
         if (resultPool.size() == updateFrequency){

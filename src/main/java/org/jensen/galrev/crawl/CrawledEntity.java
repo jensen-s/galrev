@@ -1,18 +1,18 @@
 package org.jensen.galrev.crawl;
 
-import java.io.File;
+import java.nio.file.Path;
 
 /**
  * Created by jensen on 21.05.15.
  */
 public class CrawledEntity {
-    private File file;
+    private Path path;
 
-    public CrawledEntity(File file){
-        this.file = file;
+    public CrawledEntity(Path path){
+        this.path = path;
     }
 
-    public File getFile() {
-        return file;
+    public Path getPath() {
+        return path;
     }
 }
