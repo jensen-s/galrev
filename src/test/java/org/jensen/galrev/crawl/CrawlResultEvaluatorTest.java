@@ -52,6 +52,7 @@ public class CrawlResultEvaluatorTest extends PhysicalFileTest{
             if (Files.isRegularFile(aPath)){
                 if (deleted.size() < 3){
                     Files.delete(aPath);
+                    deleted.add(aPath);
                 }
             }else if (aDir == null){
                 aDir = aPath;
@@ -59,7 +60,8 @@ public class CrawlResultEvaluatorTest extends PhysicalFileTest{
         }
 
         for (int i=0; i<4; i++){
-            createFile(new File ( aDir.toFile(), "newOne"+i+".txt"));
+            File created = createFile(new File ( aDir.toFile(), "newOne"+i+".txt"));
+            added.add(Paths.get(created.getAbsolutePath()));
         }
 
         List<Path> allPathsAfterUpdated = getPaths();

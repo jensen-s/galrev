@@ -1,5 +1,7 @@
 package org.jensen.galrev.crawl;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.model.entities.RepositoryDir;
 
 import java.io.File;
@@ -15,6 +17,8 @@ import java.util.stream.Collectors;
  * Created by jensen on 06.06.15.
  */
 public class CrawlResultEvaluator {
+
+    private Logger logger = LogManager.getLogger();
     /**
      * Compares the files stored in the repository directory with the found files
      *
@@ -34,6 +38,7 @@ public class CrawlResultEvaluator {
     }
 
     private void compareLists(CrawlEvaluation result, List<Path> reposFiles, List<Path> foundFiles) {
+        long startMs = System.currentTimeMillis();
         HashMap<String, Path> reposMap = new HashMap<>();
         reposFiles.stream().forEach(p -> reposMap.put(p.toAbsolutePath().toString(), p));
         HashMap<String, Path> foundMap = new HashMap<>();
@@ -48,6 +53,7 @@ public class CrawlResultEvaluator {
                 result.getNewFiles().add(aPath);
             }
         }
-
+        long durationMs = System.currentTimeMillis() - startMs;
+        logger.debug("Evaluation result: " + result+" duration: " + durationMs+" ms");
     }
 }

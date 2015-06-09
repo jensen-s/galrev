@@ -20,5 +20,13 @@ public class CrawlEvaluation {
     public List<Path> getNewFiles() {
         return newFiles;
     }
+
+    @Override
+    public String toString() {
+        return "CrawlEvaluation{" +
+                "lostFiles=" + lostFiles.size() +
+                ", newFiles=" + newFiles.size() +
+                '}';
+    }
 }
 

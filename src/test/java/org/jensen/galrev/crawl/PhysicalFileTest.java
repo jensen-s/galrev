@@ -53,10 +53,11 @@ public class PhysicalFileTest {
         return totalFiles;
     }
 
-    protected void createFile(File file) throws IOException {
+    protected File createFile(File file) throws IOException {
         try(PrintWriter pw = new PrintWriter(new FileWriter(file))){
             pw.append(file.getName());
         }
+        return file;
     }
 
     private void deleteBaseDir() throws IOException {
