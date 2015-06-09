@@ -21,7 +21,8 @@ public class GalRev extends Application{
         logger.info("Application starting: " + AppInfo.getFullApplicationName());
         Parent root = MainView.load();
         primaryStage.setTitle(AppInfo.getFullApplicationName());
-        primaryStage.setScene(new Scene(root, 300, 275));
+        primaryStage.setScene(new Scene(root, 600, 450));
+        primaryStage.setOnHiding(e -> System.exit(0));
         primaryStage.show();
     }
 
