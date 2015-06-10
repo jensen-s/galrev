@@ -12,16 +12,21 @@
          <items>
             <BorderPane prefHeight="200.0" prefWidth="200.0">
                <top>
-                  <ToolBar prefHeight="40.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-                    <items>
-                      <Button fx:id="btnPrev" mnemonicParsing="false" onAction="#prev" />
-                        <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#delete" />
-                        <Button fx:id="btnUndo" mnemonicParsing="false" onAction="#undo" />
-                        <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#add" />
-                        <Button fx:id="btnAccept" mnemonicParsing="false" onAction="#accept" />
-                        <Button fx:id="btnNext" mnemonicParsing="false" onAction="#next" />
-                    </items>
-                  </ToolBar>
+                  <VBox BorderPane.alignment="CENTER">
+                     <children>
+                        <Label fx:id="lblReviewName" />
+                        <ToolBar prefHeight="40.0" prefWidth="200.0">
+                          <items>
+                            <Button fx:id="btnPrev" mnemonicParsing="false" onAction="#prev" />
+                              <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#delete" />
+                              <Button fx:id="btnUndo" mnemonicParsing="false" onAction="#undo" />
+                              <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#add" />
+                              <Button fx:id="btnAccept" mnemonicParsing="false" onAction="#accept" />
+                              <Button fx:id="btnNext" mnemonicParsing="false" onAction="#next" />
+                          </items>
+                        </ToolBar>
+                     </children>
+                  </VBox>
                </top>
                <center>
                   <TreeTableView fx:id="ttvFiles" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">

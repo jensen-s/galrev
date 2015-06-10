@@ -1,7 +1,7 @@
 package org.jensen.galrev.crawl;
 
+import org.jensen.galrev.test.GalRevTest;
 import org.junit.After;
-import org.junit.Before;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -14,7 +14,7 @@ import java.util.Random;
 /**
  * Created by jensen on 07.06.15.
  */
-public class PhysicalFileTest {
+public class PhysicalFileTest extends GalRevTest {
     private String testBaseDir="testData";
     protected int totalFiles;
     private Random rnd;

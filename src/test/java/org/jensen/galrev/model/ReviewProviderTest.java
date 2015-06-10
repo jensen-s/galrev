@@ -4,6 +4,7 @@ import org.jensen.galrev.model.entities.FileState;
 import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
+import org.jensen.galrev.test.GalRevTest;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,7 +21,7 @@ import static org.junit.Assert.*;
  * Test class for ReviewProvider
  * Created by jensen on 09.04.15.
  */
-public class ReviewProviderTest {
+public class ReviewProviderTest extends GalRevTest {
 
     private ReviewProvider provider;
 

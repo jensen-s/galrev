@@ -81,6 +81,7 @@ public class ReviewProvider {
                     logger.debug("Persist");
                     em.persist(toMerge);
                     result = toMerge;
+                    logger.info("Review set created: " + result);
                 }else{
                     logger.debug("merge");
                     result = em.merge(toMerge);
