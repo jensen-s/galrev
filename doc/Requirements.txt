@@ -69,3 +69,13 @@ Strategy for Review Set check
 - Try to locate all files in Review Set.
     * If an image file is not present, any more, it is marked as lost
     * For each directory compare content with database set. If files are new, they are added
+
+===
+Menu Tree
+File
+- Add Review Set
+- Select Review Set
+- Commit Review
+- Close
+
+Review

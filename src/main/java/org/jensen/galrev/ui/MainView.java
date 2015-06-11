@@ -15,12 +15,16 @@ import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.app.GalRev;
 import org.jensen.galrev.model.ReviewProvider;
 import org.jensen.galrev.model.entities.ReviewSet;
+import org.jensen.galrev.ui.translate.Texts;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
+import java.util.PropertyResourceBundle;
+import java.util.ResourceBundle;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -65,8 +69,10 @@ public class MainView {
 
     public static Parent load() throws IOException {
         URL fxmlResource = MainView.class.getResource(FXML_FILE_NAME);
+        InputStream inputStream = Texts.getBundleStream();
+        ResourceBundle bundle = new PropertyResourceBundle(inputStream);
         logger.debug("Resource URL: " + fxmlResource);
-        return FXMLLoader.load(fxmlResource);
+        return FXMLLoader.load(fxmlResource, bundle);
     }
 
     @FXML

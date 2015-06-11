@@ -2,6 +2,9 @@ package org.jensen.galrev.ui.translate;
 
 import org.apache.logging.log4j.LogManager;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -18,7 +21,7 @@ public class Texts {
 
     public static String getText(String key, Object... params){
         if (bundle == null){
-            bundle = ResourceBundle.getBundle(BUNDLE_PACKAGE+"."+BUNDLE_NAME, locale);
+            bundle = ResourceBundle.getBundle(getBundleName(), locale);
         }
         String text;
 
@@ -38,7 +41,11 @@ public class Texts {
         }
         return text;
     }
-    
+
+    private static String getBundleName() {
+        return BUNDLE_PACKAGE+"."+BUNDLE_NAME;
+    }
+
     public static void printMissingTexts(){
         for (String aLocale: missingKeys.keySet()){
             StringBuffer bf = new StringBuffer();
@@ -48,5 +55,13 @@ public class Texts {
                 LogManager.getLogger().debug("Missing texts in locale " + aLocale+":\n"+bf.toString());
             }
         }
+    }
+
+    public static InputStream getBundleStream() {
+        final String name = File.separator+getBundleName().replace(".", File.separator) + "_" + locale.toLanguageTag().replace("-","_") + ".properties";
+        URL res = Texts.class.getResource(name);
+        InputStream stream = Texts.class.getResourceAsStream(name);
+        //final InputStream stream = Texts.class.getClassLoader().getResourceAsStream(name);
+        return stream;
     }
 }
