@@ -1,6 +1,9 @@
 package org.jensen.galrev.ui;
 
 import static org.jensen.galrev.ui.translate.Texts.getText;
+
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,12 +24,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.Optional;
-import java.util.PropertyResourceBundle;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 /**
  * FXML Controller for MainView
@@ -67,6 +68,9 @@ public class MainView {
 
     private ReviewProvider provider = ReviewProvider.getInstance();
 
+    private StringProperty reviewSetNameProperty = new SimpleStringProperty();
+    private ReviewSet reviewSet;
+
     public static Parent load() throws IOException {
         URL fxmlResource = MainView.class.getResource(FXML_FILE_NAME);
         InputStream inputStream = Texts.getBundleStream();
@@ -83,6 +87,7 @@ public class MainView {
         setButtonImage(btnAdd, UiResources.Images.FOLDER_ADD);
         setButtonImage(btnAccept, UiResources.Images.ACCEPT);
         setButtonImage(btnNext, UiResources.Images.ARROW_RIGHT);
+        lblReviewName.textProperty().bind(reviewSetNameProperty);
         Task<Void> initTask = new Task<Void>() {
             private List<ReviewSet> allSets;
 
@@ -134,8 +139,8 @@ public class MainView {
     }
 
     private void setReviewSet(ReviewSet rs) {
-        lblReviewName.setText(rs.getName());
-
+        this.reviewSet = rs;
+        reviewSetNameProperty.set(rs.getName());
     }
 
     private void setButtonImage(Button btn, UiResources.Images image) {
@@ -182,4 +187,41 @@ public class MainView {
         executor.shutdown();
     }
 
+    public void selectReviewSetSelected(ActionEvent actionEvent) {
+        List<String> choices = new ArrayList<>();
+        Map<String, ReviewSet> allSets = provider.getAllReviewSets().stream().collect(Collectors.toMap(ReviewSet::getName, rs -> rs));
+
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(reviewSet.getName(), allSets.keySet());
+        dialog.setTitle(getText("titleSelectReviewSet"));
+        dialog.setHeaderText(getText("infoSelectReviewSet"));
+        dialog.setContentText(getText("lableNewSet"));
+
+        Optional<String> result = dialog.showAndWait();
+
+        result.ifPresent(rsName -> setReviewSet(allSets.get(rsName)));
+    }
+
+    public void addReviewSetSelected(ActionEvent actionEvent) {
+    }
+
+    public void commitReviewSelected(ActionEvent actionEvent) {
+    }
+
+    public void quitSelected(ActionEvent actionEvent) {
+        GalRev.terminate();
+    }
+
+    public void renameReviewSetSelected(ActionEvent actionEvent) {
+        TextInputDialog dialog = new TextInputDialog(reviewSetNameProperty.get());
+        dialog.setTitle(getText("titleRenameReviewSet"));
+        dialog.setHeaderText(getText("infoRenameReviewSet"));
+        dialog.setContentText(getText("labelNewName"));
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            reviewSet.setName(result.get());
+            provider.mergeReviewSet(reviewSet);
+            reviewSetNameProperty.set(result.get());
+        }
+    }
 }

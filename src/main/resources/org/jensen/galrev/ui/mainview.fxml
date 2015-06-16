@@ -72,10 +72,11 @@
               <menus>
                 <Menu mnemonicParsing="false" text="%menu.file">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="%menu.selectReviewSet" />
-                    <MenuItem mnemonicParsing="false" text="%menu.addReviewSet" />
-                    <MenuItem mnemonicParsing="false" text="%menu.commitReview" />
-                    <MenuItem mnemonicParsing="false" text="%menu.exit" />
+                    <MenuItem mnemonicParsing="false" onAction="#selectReviewSetSelected" text="%menu.selectReviewSet" />
+                    <MenuItem mnemonicParsing="false" onAction="#addReviewSetSelected" text="%menu.addReviewSet" />
+                  <MenuItem mnemonicParsing="false" onAction="#renameReviewSetSelected" text="%menu.renameReviewSet" />
+                    <MenuItem mnemonicParsing="false" onAction="#commitReviewSelected" text="%menu.commitReview" />
+                    <MenuItem mnemonicParsing="false" onAction="#quitSelected" text="%menu.exit" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
