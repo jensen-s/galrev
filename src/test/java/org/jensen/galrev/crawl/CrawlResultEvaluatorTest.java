@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.*;
 
 /**
@@ -82,7 +81,7 @@ public class CrawlResultEvaluatorTest extends PhysicalFileTest{
         final List<CrawledEntity> allCEs;
         FileCrawler crawler = new FileCrawler();
         allCEs = flatten(new ArrayList<>(), crawler.crawl(Paths.get(testBaseDir)));
-        return allCEs.stream().map(ce -> ce.getPath()).filter(p -> Files.isRegularFile(p)).collect(Collectors.toList());
+        return allCEs.stream().map(CrawledEntity::getPath).filter(p -> Files.isRegularFile(p)).collect(Collectors.toList());
     }
 
     private List<CrawledEntity> flatten(List<CrawledEntity> resultList, List<CrawledEntity> toAddList) {

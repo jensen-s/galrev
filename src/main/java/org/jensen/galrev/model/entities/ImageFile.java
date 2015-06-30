@@ -1,7 +1,6 @@
 package org.jensen.galrev.model.entities;
 
 import javax.persistence.*;
-import java.util.List;
 
 /**
  * Entity representing one file of a directory being part of an review set

@@ -43,16 +43,12 @@ public class CrawlResultEvaluator {
         reposFiles.stream().forEach(p -> reposMap.put(p.toAbsolutePath().toString(), p));
         HashMap<String, Path> foundMap = new HashMap<>();
         foundFiles.stream().forEach(p -> foundMap.put(p.toAbsolutePath().toString(), p));
-        for (Path aPath: reposFiles){
-            if (!foundMap.containsKey(aPath.toAbsolutePath().toString())){
-                result.getLostFiles().add(aPath);
-            }
-        }
-        for (Path aPath: foundFiles){
-            if (!reposMap.containsKey(aPath.toAbsolutePath().toString())){
-                result.getNewFiles().add(aPath);
-            }
-        }
+        reposFiles.stream().filter(aPath -> !foundMap.containsKey(aPath.toAbsolutePath().toString())).forEach(aPath -> {
+            result.getLostFiles().add(aPath);
+        });
+        foundFiles.stream().filter(aPath -> !reposMap.containsKey(aPath.toAbsolutePath().toString())).forEach(aPath -> {
+            result.getNewFiles().add(aPath);
+        });
         long durationMs = System.currentTimeMillis() - startMs;
         logger.debug("Evaluation result: " + result+" duration: " + durationMs+" ms");
     }
