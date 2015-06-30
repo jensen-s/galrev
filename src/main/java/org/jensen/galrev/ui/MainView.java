@@ -16,7 +16,9 @@ import javafx.stage.DirectoryChooser;;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.app.GalRev;
+import org.jensen.galrev.crawl.FileCrawler;
 import org.jensen.galrev.model.ReviewProvider;
+import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
 import org.jensen.galrev.ui.translate.Texts;
 
@@ -24,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -44,7 +47,7 @@ public class MainView {
     @FXML
     private ProgressIndicator progressIndicator;
     @FXML
-    private TreeTableView ttvFiles;
+    private TreeTableView<DisplayPath> ttvFiles;
     @FXML
     private Button btnPrev;
     @FXML
@@ -58,11 +61,11 @@ public class MainView {
     @FXML
     private Button btnNext;
     @FXML
-    private TreeTableColumn colFile;
+    private TreeTableColumn<DisplayPath, String> colFile;
     @FXML
-    private TreeTableColumn colAccept;
+    private TreeTableColumn<DisplayPath, Boolean> colAccept;
     @FXML
-    private TreeTableColumn colDelete;
+    private TreeTableColumn<DisplayPath, Boolean> colDelete;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(1);
 
@@ -161,7 +164,15 @@ public class MainView {
         DirectoryChooser chooser = new DirectoryChooser();
         chooser.setTitle(getText("titleSelectFolder"));
         File chooseResult = chooser.showDialog(btnAdd.getScene().getWindow());
+        if (chooseResult != null) {
+            RepositoryDir rd = reviewSet.addDirectory(Paths.get(chooseResult.getAbsolutePath()));
+            addRepositoryDir(rd);
+        }
 
+    }
+
+    private void addRepositoryDir(RepositoryDir rd) {
+        FileCrawler crawler = new FileCrawler();
     }
 
     @FXML

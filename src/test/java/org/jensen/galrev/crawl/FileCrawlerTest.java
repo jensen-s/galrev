@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.List;
 import java.util.Random;
 
 import static org.hamcrest.Matchers.is;
@@ -24,26 +25,39 @@ public class FileCrawlerTest extends PhysicalFileTest {
     private static final int MIN_FILES_TOP_DIR = 10;
     private static final int MAX_FILES_PER_DIR = 30;
 
-    private TestResultListener resultListener;
     private String testBaseDir;
 
     @Before
     public void setUp() throws IOException {
         testBaseDir = super.setUp(MIN_FILES_TOP_DIR, MAX_FILES_PER_DIR);
-        resultListener = new TestResultListener();
     }
 
     @Test
     public void testCrawl() throws Exception {
         long start = System.currentTimeMillis();
-        FileCrawler crawler = new FileCrawler(resultListener);
+        FileCrawler crawler = new FileCrawler();
         final int updateFrequency = 13;
-        crawler.setUpdateFrequency(updateFrequency);
-        crawler.crawl(Paths.get(testBaseDir));
-        assertTrue(resultListener.getMaxReported() <= updateFrequency);
-        assertThat(resultListener.getTotalFiles().size(), is(totalFiles));
+        List<CrawledEntity> resultList = crawler.crawl(Paths.get(testBaseDir));
+        assertThat(getFileCount(resultList), is(totalFiles + 1)); // add root dir
         long duration = System.currentTimeMillis() - start;
         System.out.println("Duration for " + totalFiles+" files: " + duration+" ms");
+        checkType(resultList);
+    }
+
+    private void checkType(List<CrawledEntity> ceList) {
+        for (CrawledEntity ce: ceList){
+            if (!ceList.isEmpty()){
+                assertThat(Files.isDirectory(ce.getPath()), is(true));
+            }
+        }
+    }
+
+    private int getFileCount(List<CrawledEntity> resultList) {
+        int total = 0;
+        for (CrawledEntity ce: resultList){
+            total += 1 + getFileCount(ce.getChildren());
+        }
+        return total;
     }
 
 }

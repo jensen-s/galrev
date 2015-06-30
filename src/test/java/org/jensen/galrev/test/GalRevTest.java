@@ -7,6 +7,6 @@ import org.jensen.galrev.model.JpaAccess;
  */
 public class GalRevTest {
     protected GalRevTest(){
-        JpaAccess.setPersistenceUnit("galrev-test");
+        JpaAccess.setPersistenceUnit("galrev_test");
     }
 }

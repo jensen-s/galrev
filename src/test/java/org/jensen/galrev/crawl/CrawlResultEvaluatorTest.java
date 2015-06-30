@@ -79,9 +79,17 @@ public class CrawlResultEvaluatorTest extends PhysicalFileTest{
     }
 
     private List<Path> getPaths() {
-        final List<CrawledEntity> allCEs = new ArrayList<>();
-        FileCrawler crawler = new FileCrawler(l -> allCEs.addAll(l));
-        crawler.crawl(Paths.get(testBaseDir));
+        final List<CrawledEntity> allCEs;
+        FileCrawler crawler = new FileCrawler();
+        allCEs = flatten(new ArrayList<>(), crawler.crawl(Paths.get(testBaseDir)));
         return allCEs.stream().map(ce -> ce.getPath()).filter(p -> Files.isRegularFile(p)).collect(Collectors.toList());
+    }
+
+    private List<CrawledEntity> flatten(List<CrawledEntity> resultList, List<CrawledEntity> toAddList) {
+        for (CrawledEntity ce: toAddList){
+            resultList.add(ce);
+            flatten(resultList, ce.getChildren());
+        }
+        return resultList;
     }
 }
