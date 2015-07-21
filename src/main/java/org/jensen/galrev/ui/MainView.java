@@ -2,22 +2,30 @@ package org.jensen.galrev.ui;
 
 import static org.jensen.galrev.ui.translate.Texts.getText;
 
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.stage.DirectoryChooser;;
+import javafx.scene.text.Text;
+import javafx.stage.DirectoryChooser;
+import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.app.GalRev;
 import org.jensen.galrev.crawl.FileCrawler;
 import org.jensen.galrev.model.ReviewProvider;
+import org.jensen.galrev.model.entities.FileState;
+import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
 import org.jensen.galrev.ui.translate.Texts;
@@ -40,6 +48,9 @@ public class MainView {
 
     private static final String FXML_FILE_NAME = "mainview.fxml";
     private static final Logger logger = LogManager.getLogger(MainView.class);
+
+    @FXML
+    private Text txtCurrentFile;
 
     @FXML
     private Label lblReviewName;
@@ -73,6 +84,7 @@ public class MainView {
 
     private StringProperty reviewSetNameProperty = new SimpleStringProperty();
     private ReviewSet reviewSet;
+    private SimpleObjectProperty<ImageFile> currentFile = new SimpleObjectProperty<>();
 
     public static Parent load() throws IOException {
         URL fxmlResource = MainView.class.getResource(FXML_FILE_NAME);
@@ -91,6 +103,7 @@ public class MainView {
         setButtonImage(btnAccept, UiResources.Images.ACCEPT);
         setButtonImage(btnNext, UiResources.Images.ARROW_RIGHT);
         lblReviewName.textProperty().bind(reviewSetNameProperty);
+        initTreeTable();
         Task<Void> initTask = new Task<Void>() {
             private List<ReviewSet> allSets;
 
@@ -107,7 +120,6 @@ public class MainView {
                     dialog.setHeaderText(getText("infoNoReviewAvailable"));
                     dialog.setContentText(getText("lblReviewName")+":");
 
-                    // Traditional way to get the response value.
                     Optional<String> result = dialog.showAndWait();
                     if (result.isPresent()) {
                         ReviewSet rs = provider.createNewReviewSet();
@@ -139,6 +151,72 @@ public class MainView {
             }
         };
         executor.submit(initTask);
+        txtCurrentFile.setText("");
+        currentFile.addListener(evt -> {
+            if (currentFile.get() == null){
+                txtCurrentFile.setText("");
+            }else{
+                txtCurrentFile.setText(currentFile.getValue().getFilename());
+            }
+        });
+
+        //TODO: Test data
+        TreeItem<DisplayPath> rootItem = createTreeItem("root");
+
+        rootItem.getChildren().add(createTreeItem("child1"));
+        rootItem.getChildren().add(createTreeItem("child2"));
+        rootItem.getChildren().add(createTreeItem("child2"));
+        rootItem.getChildren().get(0).getChildren().add(createTreeItem("child1.1"));
+        rootItem.getChildren().get(0).getChildren().add(createTreeItem("child1.2"));
+        rootItem.getChildren().get(1).getChildren().add(createTreeItem("child2.1"));
+        rootItem.getChildren().get(1).getChildren().add(createTreeItem("child2.2"));
+        rootItem.getChildren().get(1).getValue().getImageFile().setState(FileState.REVIEWED);
+        rootItem.getChildren().get(0).getValue().getImageFile().setState(FileState.MARKED_FOR_DELETION);
+        ttvFiles.setRoot(rootItem);
+    }
+
+    private void initTreeTable() {
+        colFile.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getValue().getImageFile().getFilename()));
+        colAccept.setCellValueFactory(param -> new SimpleBooleanProperty(FileState.REVIEWED.equals(param.getValue().getValue().getImageFile().getState())));
+        colAccept.setCellFactory(param -> {
+            return new TreeTableCell<DisplayPath, Boolean>() {
+                @Override
+                protected void updateItem(Boolean item, boolean empty) {
+                    if (Boolean.TRUE.equals(item)) {
+                        ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.ACCEPT));
+                        setGraphic(iv);
+                    }
+                }
+            };
+        });
+        colDelete.setCellValueFactory(param -> new SimpleBooleanProperty(FileState.MARKED_FOR_DELETION.equals(param.getValue().getValue().getImageFile().getState())));
+        colDelete.setCellFactory(param -> {
+            return new TreeTableCell<DisplayPath, Boolean>() {
+                @Override
+                protected void updateItem(Boolean item, boolean empty) {
+                    if (Boolean.TRUE.equals(item)) {
+                        ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.DELETE));
+                        setGraphic(iv);
+                    }
+                }
+            };
+        });
+        ttvFiles.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        ttvFiles.getSelectionModel().selectedItemProperty().addListener(c -> {
+            TreeItem<DisplayPath> selectedItem = ttvFiles.getSelectionModel().getSelectedItem();
+            if (selectedItem != null) {
+                currentFile.set(selectedItem.getValue().getImageFile());
+            } else {
+                currentFile.set(null);
+            }
+        });
+    }
+
+    private TreeItem<DisplayPath> createTreeItem(String filename) {
+        DisplayPath root = new DisplayPath();
+        root.setImageFile(new ImageFile());
+        root.getImageFile().setFilename(filename);
+        return new TreeItem<>(root);
     }
 
     private void setReviewSet(ReviewSet rs) {
