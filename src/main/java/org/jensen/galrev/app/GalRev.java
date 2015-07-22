@@ -27,7 +27,7 @@ public class GalRev extends Application{
     @Override
     public void start(Stage primaryStage) throws Exception {
         logger.info("Application starting: " + AppInfo.getFullApplicationName());
-        Parent root = MainView.load();
+        Parent root = MainView.load(primaryStage);
         primaryStage.setTitle(AppInfo.getFullApplicationName());
         primaryStage.setScene(new Scene(root, 600, 450));
         primaryStage.setOnCloseRequest(e -> terminate());

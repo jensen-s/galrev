@@ -16,8 +16,10 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,12 +88,16 @@ public class MainView {
     private ReviewSet reviewSet;
     private SimpleObjectProperty<ImageFile> currentFile = new SimpleObjectProperty<>();
 
-    public static Parent load() throws IOException {
+    public static Parent load(Stage stage) throws IOException {
         URL fxmlResource = MainView.class.getResource(FXML_FILE_NAME);
         InputStream inputStream = Texts.getBundleStream();
         ResourceBundle bundle = new PropertyResourceBundle(inputStream);
         logger.debug("Resource URL: " + fxmlResource);
-        return FXMLLoader.load(fxmlResource, bundle);
+        FXMLLoader loader = new FXMLLoader(fxmlResource, bundle);
+        final Parent parent = loader.load();
+        MainView mv = (MainView)loader.getController();
+        mv.initKeyHandling(stage);
+        return parent;
     }
 
     @FXML
@@ -153,12 +159,13 @@ public class MainView {
         executor.submit(initTask);
         txtCurrentFile.setText("");
         currentFile.addListener(evt -> {
-            if (currentFile.get() == null){
+            if (currentFile.get() == null) {
                 txtCurrentFile.setText("");
-            }else{
+            } else {
                 txtCurrentFile.setText(currentFile.getValue().getFilename());
             }
         });
+
 
         //TODO: Test data
         TreeItem<DisplayPath> rootItem = createTreeItem("root");
@@ -173,6 +180,13 @@ public class MainView {
         rootItem.getChildren().get(1).getValue().getImageFile().setState(FileState.REVIEWED);
         rootItem.getChildren().get(0).getValue().getImageFile().setState(FileState.MARKED_FOR_DELETION);
         ttvFiles.setRoot(rootItem);
+    }
+
+    private void initKeyHandling(Stage stage) {
+
+        stage.addEventHandler(KeyEvent.KEY_PRESSED, evt -> {
+            System.out.println("Key pressed: " + evt.getCharacter()+"/"+evt.getText());
+        });
     }
 
     private void initTreeTable() {
