@@ -6,24 +6,22 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.app.GalRev;
+import org.jensen.galrev.crawl.CrawledEntity;
 import org.jensen.galrev.crawl.FileCrawler;
 import org.jensen.galrev.model.ReviewProvider;
 import org.jensen.galrev.model.entities.FileState;
@@ -36,6 +34,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -50,6 +50,7 @@ public class MainView {
 
     private static final String FXML_FILE_NAME = "mainview.fxml";
     private static final Logger logger = LogManager.getLogger(MainView.class);
+    private static final boolean TEST_DATA = false;
 
     @FXML
     private Text txtCurrentFile;
@@ -85,7 +86,7 @@ public class MainView {
     private ReviewProvider provider = ReviewProvider.getInstance();
 
     private StringProperty reviewSetNameProperty = new SimpleStringProperty();
-    private ReviewSet reviewSet;
+    private SimpleObjectProperty<ReviewSet> reviewSetProperty=new SimpleObjectProperty<>();
     private SimpleObjectProperty<ImageFile> currentFile = new SimpleObjectProperty<>();
 
     public static Parent load(Stage stage) throws IOException {
@@ -166,54 +167,111 @@ public class MainView {
             }
         });
 
+        reviewSetProperty.addListener(((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                reviewSetNameProperty.setValue(newValue.getName());
+                fillTree(newValue.getDirectories());
+            } else {
+                reviewSetNameProperty.setValue("");
+                fillTree(Collections.emptyList());
+            }
+        }));
+    }
 
-        //TODO: Test data
-        TreeItem<DisplayPath> rootItem = createTreeItem("root");
+    private void fillTree(List<RepositoryDir> directories) {
 
-        rootItem.getChildren().add(createTreeItem("child1"));
-        rootItem.getChildren().add(createTreeItem("child2"));
-        rootItem.getChildren().add(createTreeItem("child2"));
-        rootItem.getChildren().get(0).getChildren().add(createTreeItem("child1.1"));
-        rootItem.getChildren().get(0).getChildren().add(createTreeItem("child1.2"));
-        rootItem.getChildren().get(1).getChildren().add(createTreeItem("child2.1"));
-        rootItem.getChildren().get(1).getChildren().add(createTreeItem("child2.2"));
-        rootItem.getChildren().get(1).getValue().getImageFile().setState(FileState.REVIEWED);
-        rootItem.getChildren().get(0).getValue().getImageFile().setState(FileState.MARKED_FOR_DELETION);
+
+        TreeItem<DisplayPath> rootItem = createDummyTreeItem(getText("labelDirectories"));
+        if (TEST_DATA) {
+            rootItem.getChildren().add(createDummyTreeItem("child1"));
+            rootItem.getChildren().add(createDummyTreeItem("child2"));
+            rootItem.getChildren().add(createDummyTreeItem("child2"));
+            rootItem.getChildren().get(0).getChildren().add(createDummyTreeItem("child1.1"));
+            rootItem.getChildren().get(0).getChildren().add(createDummyTreeItem("child1.2"));
+            rootItem.getChildren().get(1).getChildren().add(createDummyTreeItem("child2.1"));
+            rootItem.getChildren().get(1).getChildren().add(createDummyTreeItem("child2.2"));
+            rootItem.getChildren().get(1).getValue().getImageFile().setState(FileState.REVIEWED);
+            rootItem.getChildren().get(0).getValue().getImageFile().setState(FileState.MARKED_FOR_DELETION);
+        }else{
+            directories.forEach(dir -> addChild(rootItem, dir));
+        }
         ttvFiles.setRoot(rootItem);
+    }
+
+    private void addChild(TreeItem<DisplayPath> parent, RepositoryDir dir){
+        TreeItem<DisplayPath> ti = createTreeItem(dir);
+        parent.getChildren().add(ti);
+        dir.getFiles().forEach(imageFile -> ti.getChildren().add(createTreeItem(imageFile)));
+    }
+
+    private TreeItem<DisplayPath> createTreeItem(RepositoryDir dir) {
+        DisplayPath dp = new DisplayPath();
+        dp.setReposDir(dir);
+        dp.setPath(Paths.get(dir.getPath()));
+        TreeItem<DisplayPath> ti = new TreeItem<>(dp);
+        return ti;
+    }
+
+    private TreeItem<DisplayPath> createTreeItem(ImageFile file) {
+        DisplayPath dp = new DisplayPath();
+        dp.setImageFile(file);
+        dp.setPath(Paths.get(file.getFilename()));
+        TreeItem<DisplayPath> ti = new TreeItem<>(dp);
+        return ti;
     }
 
     private void initKeyHandling(Stage stage) {
 
         stage.addEventHandler(KeyEvent.KEY_PRESSED, evt -> {
-            System.out.println("Key pressed: " + evt.getCharacter()+"/"+evt.getText());
+            System.out.println("Key pressed: " + evt.getCharacter() + "/" + evt.getText());
         });
     }
 
     private void initTreeTable() {
-        colFile.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getValue().getImageFile().getFilename()));
-        colAccept.setCellValueFactory(param -> new SimpleBooleanProperty(FileState.REVIEWED.equals(param.getValue().getValue().getImageFile().getState())));
-        colAccept.setCellFactory(param -> {
-            return new TreeTableCell<DisplayPath, Boolean>() {
-                @Override
-                protected void updateItem(Boolean item, boolean empty) {
-                    if (Boolean.TRUE.equals(item)) {
-                        ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.ACCEPT));
-                        setGraphic(iv);
-                    }
-                }
-            };
+        colFile.setCellValueFactory(param -> {
+            final DisplayPath displayPath = param.getValue().getValue();
+            Path path = displayPath.getPath();
+            String displayString="";
+            if (path != null){
+                displayString = path.getFileName().toString();
+            }else if(displayPath.getImageFile() != null){
+                displayString = displayPath.getImageFile().getFilename();
+            }else if(displayPath.getReposDir() != null){
+                displayString = displayPath.getReposDir().getPath();
+            }
+            return new SimpleStringProperty(displayString);
         });
-        colDelete.setCellValueFactory(param -> new SimpleBooleanProperty(FileState.MARKED_FOR_DELETION.equals(param.getValue().getValue().getImageFile().getState())));
-        colDelete.setCellFactory(param -> {
-            return new TreeTableCell<DisplayPath, Boolean>() {
-                @Override
-                protected void updateItem(Boolean item, boolean empty) {
-                    if (Boolean.TRUE.equals(item)) {
-                        ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.DELETE));
-                        setGraphic(iv);
-                    }
+        colAccept.setCellValueFactory(param -> {
+            boolean value = false;
+            if (param.getValue().getValue().getImageFile() != null){
+                value = FileState.REVIEWED.equals(param.getValue().getValue().getImageFile().getState());
+            }
+            return new SimpleBooleanProperty(value);
+        });
+        colAccept.setCellFactory(param -> new TreeTableCell<DisplayPath, Boolean>() {
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                if (Boolean.TRUE.equals(item)) {
+                    ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.ACCEPT));
+                    setGraphic(iv);
                 }
-            };
+            }
+        });
+        colDelete.setCellValueFactory(param -> {
+            boolean value = false;
+            if (param.getValue().getValue().getImageFile() != null){
+                value = FileState.MARKED_FOR_DELETION.equals(param.getValue().getValue().getImageFile().getState());
+            }
+            return new SimpleBooleanProperty(value);
+        });
+        colDelete.setCellFactory(param -> new TreeTableCell<DisplayPath, Boolean>() {
+            @Override
+            protected void updateItem(Boolean item, boolean empty) {
+                if (Boolean.TRUE.equals(item)) {
+                    ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.DELETE));
+                    setGraphic(iv);
+                }
+            }
         });
         ttvFiles.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         ttvFiles.getSelectionModel().selectedItemProperty().addListener(c -> {
@@ -226,7 +284,7 @@ public class MainView {
         });
     }
 
-    private TreeItem<DisplayPath> createTreeItem(String filename) {
+    private TreeItem<DisplayPath> createDummyTreeItem(String filename) {
         DisplayPath root = new DisplayPath();
         root.setImageFile(new ImageFile());
         root.getImageFile().setFilename(filename);
@@ -234,8 +292,7 @@ public class MainView {
     }
 
     private void setReviewSet(ReviewSet rs) {
-        this.reviewSet = rs;
-        reviewSetNameProperty.set(rs.getName());
+        reviewSetProperty.set(rs);
     }
 
     private void setButtonImage(Button btn, UiResources.Images image) {
@@ -257,14 +314,33 @@ public class MainView {
         chooser.setTitle(getText("titleSelectFolder"));
         File chooseResult = chooser.showDialog(btnAdd.getScene().getWindow());
         if (chooseResult != null) {
-            RepositoryDir rd = reviewSet.addDirectory(Paths.get(chooseResult.getAbsolutePath()));
+            RepositoryDir rd = reviewSetProperty.get().addDirectory(Paths.get(chooseResult.getAbsolutePath()));
             addRepositoryDir(rd);
         }
 
     }
 
     private void addRepositoryDir(RepositoryDir rd) {
+        //TODO: Task
         FileCrawler crawler = new FileCrawler();
+        List<CrawledEntity> resultList = crawler.crawl(Paths.get(rd.getPath()));
+        resultList.forEach(ce -> {
+            addCrawledEntity(ttvFiles.getRoot(), ce);
+        });
+        provider.mergeReviewSet(reviewSetProperty.get());
+    }
+
+    private void addCrawledEntity(TreeItem<DisplayPath> treeItem, CrawledEntity ce) {
+        Path path = ce.getPath();
+        if (Files.isDirectory(path)){
+            RepositoryDir repositoryDir = reviewSetProperty.get().addDirectory(path);
+            final TreeItem<DisplayPath> childDirItem = createTreeItem(repositoryDir);
+            treeItem.getChildren().add(childDirItem);
+            ce.getChildren().forEach(childCe -> {
+                repositoryDir.addFile(childCe.getPath().getFileName().toString());
+                addCrawledEntity(childDirItem, childCe);
+            });
+        }
     }
 
     @FXML
@@ -294,7 +370,7 @@ public class MainView {
         List<String> choices = new ArrayList<>();
         Map<String, ReviewSet> allSets = provider.getAllReviewSets().stream().collect(Collectors.toMap(ReviewSet::getName, rs -> rs));
 
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(reviewSet.getName(), allSets.keySet());
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(reviewSetNameProperty.get(), allSets.keySet());
         dialog.setTitle(getText("titleSelectReviewSet"));
         dialog.setHeaderText(getText("infoSelectReviewSet"));
         dialog.setContentText(getText("lableNewSet"));
@@ -305,6 +381,18 @@ public class MainView {
     }
 
     public void addReviewSetSelected(ActionEvent actionEvent) {
+        TextInputDialog dialog = new TextInputDialog(reviewSetNameProperty.get());
+        dialog.setTitle(getText("titleAddReviewSet"));
+        dialog.setHeaderText(getText("infoAddReviewSet"));
+        dialog.setContentText(getText("labelName"));
+
+        Optional<String> result = dialog.showAndWait();
+        if (result.isPresent()) {
+            ReviewSet rs = provider.createNewReviewSet();
+            rs.setName(result.get());
+            provider.mergeReviewSet(rs);
+            reviewSetProperty.set(rs);
+        }
     }
 
     public void commitReviewSelected(ActionEvent actionEvent) {
@@ -322,6 +410,7 @@ public class MainView {
 
         Optional<String> result = dialog.showAndWait();
         if (result.isPresent()) {
+            final ReviewSet reviewSet = reviewSetProperty.get();
             reviewSet.setName(result.get());
             provider.mergeReviewSet(reviewSet);
             reviewSetNameProperty.set(result.get());

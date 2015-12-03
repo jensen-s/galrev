@@ -1,22 +1,15 @@
 package org.jensen.galrev.crawl;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.Random;
 
 import static org.hamcrest.Matchers.is;
-
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Created by jensen on 21.05.15.
@@ -36,7 +29,6 @@ public class FileCrawlerTest extends PhysicalFileTest {
     public void testCrawl() throws Exception {
         long start = System.currentTimeMillis();
         FileCrawler crawler = new FileCrawler();
-        final int updateFrequency = 13;
         List<CrawledEntity> resultList = crawler.crawl(Paths.get(testBaseDir));
         assertThat(getFileCount(resultList), is(totalFiles + 1)); // add root dir
         long duration = System.currentTimeMillis() - start;
