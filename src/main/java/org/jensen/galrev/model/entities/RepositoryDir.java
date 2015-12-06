@@ -12,7 +12,8 @@ import java.util.List;
  * Created by jensen on 06.05.15.
  */
 @Entity
-@Table(name=DbConstants.TABLE_PREFIX+"dir")
+@Table(name=DbConstants.TABLE_PREFIX+"dir",
+        uniqueConstraints=@UniqueConstraint(columnNames = {"path", "fk_reviewset"}))
 @SequenceGenerator(name = RepositoryDir.SEQ_ID, sequenceName = RepositoryDir.SEQ_NAME)
 public class RepositoryDir {
     protected static final String SEQ_NAME = DbConstants.SEQ_PREFIX + "dir_id";

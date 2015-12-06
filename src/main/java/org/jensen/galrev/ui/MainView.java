@@ -2,6 +2,7 @@ package org.jensen.galrev.ui;
 
 import static org.jensen.galrev.ui.translate.Texts.getText;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -103,6 +104,17 @@ public class MainView {
 
     @FXML
     void initialize() {
+        Platform.runLater(()-> {
+                    progressIndicator.getScene().getWindow().setEventDispatcher((event, chain) -> {
+                        try {
+                            return chain.dispatchEvent(event);
+                        } catch (Exception e) {
+                            // TODO: Detailed error
+                            DialogHelper.showException(Texts.getText("messageGeneralException"), e);
+                            return null;
+                        }
+                    });
+                });
         setButtonImage(btnPrev, UiResources.Images.ARROW_LEFT);
         setButtonImage(btnDelete, UiResources.Images.DELETE);
         setButtonImage(btnUndo, UiResources.Images.UNDO);
@@ -314,32 +326,36 @@ public class MainView {
         chooser.setTitle(getText("titleSelectFolder"));
         File chooseResult = chooser.showDialog(btnAdd.getScene().getWindow());
         if (chooseResult != null) {
-            RepositoryDir rd = reviewSetProperty.get().addDirectory(Paths.get(chooseResult.getAbsolutePath()));
-            addRepositoryDir(rd);
+            addRepositoryDir(Paths.get(chooseResult.getAbsolutePath()));
         }
 
     }
 
-    private void addRepositoryDir(RepositoryDir rd) {
+    private void addRepositoryDir(Path directoryPath) {
         //TODO: Task
         FileCrawler crawler = new FileCrawler();
-        List<CrawledEntity> resultList = crawler.crawl(Paths.get(rd.getPath()));
+        List<CrawledEntity> resultList = crawler.crawl(directoryPath);
         resultList.forEach(ce -> {
-            addCrawledEntity(ttvFiles.getRoot(), ce);
+            addCrawledEntity(null, ttvFiles.getRoot(), ce);
         });
         provider.mergeReviewSet(reviewSetProperty.get());
     }
 
-    private void addCrawledEntity(TreeItem<DisplayPath> treeItem, CrawledEntity ce) {
+    private void addCrawledEntity(RepositoryDir parentRD, TreeItem<DisplayPath> treeItem, CrawledEntity ce) {
         Path path = ce.getPath();
         if (Files.isDirectory(path)){
             RepositoryDir repositoryDir = reviewSetProperty.get().addDirectory(path);
             final TreeItem<DisplayPath> childDirItem = createTreeItem(repositoryDir);
             treeItem.getChildren().add(childDirItem);
             ce.getChildren().forEach(childCe -> {
-                repositoryDir.addFile(childCe.getPath().getFileName().toString());
-                addCrawledEntity(childDirItem, childCe);
+                addCrawledEntity(repositoryDir, childDirItem, childCe);
             });
+        }else{
+            if (parentRD != null) {
+                parentRD.addFile(path.getFileName().toString());
+            }else{
+                throw new NullPointerException("Try to add file to null repository dir");
+            }
         }
     }
 

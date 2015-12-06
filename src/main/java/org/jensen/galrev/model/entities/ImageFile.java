@@ -7,7 +7,8 @@ import javax.persistence.*;
  * Created by jensen on 09.04.15.
  */
 @Entity
-@Table(name = DbConstants.TABLE_PREFIX+"image_file")
+@Table(name = DbConstants.TABLE_PREFIX+"image_file",
+        uniqueConstraints=@UniqueConstraint(columnNames = {"filename", "fk_repos_dir"}))
 @SequenceGenerator(name = ImageFile.SEQ_ID, sequenceName = ImageFile.SEQ_NAME)
 public class ImageFile {
     protected static final String SEQ_NAME = DbConstants.SEQ_PREFIX + "image_file_id";

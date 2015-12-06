@@ -6,6 +6,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
+import org.jensen.galrev.model.JpaAccess;
+import org.jensen.galrev.settings.GalRevSettings;
 import org.jensen.galrev.ui.MainView;
 
 import org.apache.logging.log4j.Logger;
@@ -32,6 +34,13 @@ public class GalRev extends Application{
         primaryStage.setScene(new Scene(root, 600, 450));
         primaryStage.setOnCloseRequest(e -> terminate());
         primaryStage.show();
+    }
+
+    @Override
+    public void init() throws Exception {
+        logger.debug("Start application initialization");
+        JpaAccess.setPersistenceUnit(GalRevSettings.getPersistenceUnit());
+        logger.debug("Initialization done");
     }
 
     public static void main(String[] args) {
