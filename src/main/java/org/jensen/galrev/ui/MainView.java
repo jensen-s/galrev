@@ -205,7 +205,10 @@ public class MainView {
             rootItem.getChildren().get(1).getValue().getImageFile().setState(FileState.REVIEWED);
             rootItem.getChildren().get(0).getValue().getImageFile().setState(FileState.MARKED_FOR_DELETION);
         }else{
-            directories.forEach(dir -> addChild(rootItem, dir));
+            List<Path> missingPaths = UiHelper.fillTreeItem(rootItem, directories);
+            if (!missingPaths.isEmpty()) {
+                throw new RuntimeException("Implement handling of missing paths!");
+            }
         }
         ttvFiles.setRoot(rootItem);
     }
