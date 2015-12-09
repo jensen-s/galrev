@@ -36,4 +36,13 @@ public class DisplayPath {
     public void setReposDir(RepositoryDir reposDir) {
         this.reposDir = reposDir;
     }
+
+    @Override
+    public String toString() {
+        return "DisplayPath{" +
+                "path=" + path +
+                ", imageFile=" + imageFile +
+                ", reposDir=" + reposDir +
+                '}';
+    }
 }

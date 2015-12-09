@@ -1,7 +1,5 @@
 package org.jensen.galrev.ui;
 
-import static org.jensen.galrev.ui.translate.Texts.getText;
-
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -42,6 +40,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
+
+import static org.jensen.galrev.ui.translate.Texts.getText;
 
 /**
  * FXML Controller for MainView
@@ -97,7 +97,7 @@ public class MainView {
         logger.debug("Resource URL: " + fxmlResource);
         FXMLLoader loader = new FXMLLoader(fxmlResource, bundle);
         final Parent parent = loader.load();
-        MainView mv = (MainView)loader.getController();
+        MainView mv = loader.getController();
         mv.initKeyHandling(stage);
         return parent;
     }
@@ -220,16 +220,14 @@ public class MainView {
         DisplayPath dp = new DisplayPath();
         dp.setReposDir(dir);
         dp.setPath(Paths.get(dir.getPath()));
-        TreeItem<DisplayPath> ti = new TreeItem<>(dp);
-        return ti;
+        return new TreeItem<>(dp);
     }
 
     private TreeItem<DisplayPath> createTreeItem(ImageFile file) {
         DisplayPath dp = new DisplayPath();
         dp.setImageFile(file);
         dp.setPath(Paths.get(file.getFilename()));
-        TreeItem<DisplayPath> ti = new TreeItem<>(dp);
-        return ti;
+        return new TreeItem<>(dp);
     }
 
     private void initKeyHandling(Stage stage) {
@@ -383,7 +381,6 @@ public class MainView {
     }
 
     public void selectReviewSetSelected(ActionEvent actionEvent) {
-        List<String> choices = new ArrayList<>();
         Map<String, ReviewSet> allSets = provider.getAllReviewSets().stream().collect(Collectors.toMap(ReviewSet::getName, rs -> rs));
 
         ChoiceDialog<String> dialog = new ChoiceDialog<>(reviewSetNameProperty.get(), allSets.keySet());

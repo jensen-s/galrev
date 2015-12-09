@@ -11,5 +11,5 @@ public interface ICrawlResultListener {
      * Invoked after a number of files has been detected
      * @param located
      */
-    public void filesLocated(List<CrawledEntity> located);
+    void filesLocated(List<CrawledEntity> located);
 }

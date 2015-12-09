@@ -1,9 +1,6 @@
 package org.jensen.galrev.model;
 
-import org.jensen.galrev.model.entities.ReviewSet;
-
 import javax.persistence.EntityManager;
-import java.util.List;
 
 /**
  * Adapter to ease implementation of ITransaction

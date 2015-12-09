@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * Created by jensen on 07.06.15.
@@ -41,7 +42,7 @@ public class CrawlResultEvaluatorTest extends PhysicalFileTest{
         rs.setName("rs");
         provider.mergeReviewSet(rs);
         provider.addFileList(rs, Paths.get(testBaseDir), allPaths);
-        RepositoryDir rd = rs.getDirectories().get(0);
+        rs.getDirectories().get(0);
 
         List<Path> deleted = new ArrayList<>();
         List<Path> added = new ArrayList<>();

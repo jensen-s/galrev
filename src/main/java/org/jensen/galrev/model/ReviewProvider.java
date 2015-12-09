@@ -8,13 +8,11 @@ import org.jensen.galrev.model.entities.ReviewSet;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
-
-import static org.jensen.galrev.model.JpaAccess.*;
-
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import static org.jensen.galrev.model.JpaAccess.evaluateTransaction;
+import static org.jensen.galrev.model.JpaAccess.transaction;
 
 /**
  * Data Access for GalleryReview entities
@@ -125,7 +123,7 @@ public class ReviewProvider {
     public void addFileList(ReviewSet set, Path baseDir, List<Path> files){
         logger.debug("About to add " + files.size()+ " files to " + set);
         RepositoryDir rd = set.addDirectory(baseDir);
-        files.stream().map(f -> rd.addFile(f.toAbsolutePath().toString())).forEach(imf -> mergeFile(imf));
+        files.stream().map(f -> rd.addFile(f.toAbsolutePath().toString())).forEach(this::mergeFile);
         mergeReviewSet(set);
     }
 

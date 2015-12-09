@@ -7,7 +7,6 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import org.jensen.galrev.ui.translate.Texts;
 
-import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
