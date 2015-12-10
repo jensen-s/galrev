@@ -194,21 +194,9 @@ public class MainView {
 
 
         TreeItem<DisplayPath> rootItem = createDummyTreeItem(getText("labelDirectories"));
-        if (TEST_DATA) {
-            rootItem.getChildren().add(createDummyTreeItem("child1"));
-            rootItem.getChildren().add(createDummyTreeItem("child2"));
-            rootItem.getChildren().add(createDummyTreeItem("child2"));
-            rootItem.getChildren().get(0).getChildren().add(createDummyTreeItem("child1.1"));
-            rootItem.getChildren().get(0).getChildren().add(createDummyTreeItem("child1.2"));
-            rootItem.getChildren().get(1).getChildren().add(createDummyTreeItem("child2.1"));
-            rootItem.getChildren().get(1).getChildren().add(createDummyTreeItem("child2.2"));
-            rootItem.getChildren().get(1).getValue().getImageFile().setState(FileState.REVIEWED);
-            rootItem.getChildren().get(0).getValue().getImageFile().setState(FileState.MARKED_FOR_DELETION);
-        }else{
-            List<Path> missingPaths = UiHelper.fillTreeItem(rootItem, directories);
-            if (!missingPaths.isEmpty()) {
-                throw new RuntimeException("Implement handling of missing paths!");
-            }
+        List<Path> missingPaths = UiHelper.fillTreeItem(rootItem, directories);
+        if (!missingPaths.isEmpty()) {
+            throw new RuntimeException("Implement handling of missing paths!");
         }
         ttvFiles.setRoot(rootItem);
     }
@@ -353,7 +341,9 @@ public class MainView {
             });
         }else{
             if (parentRD != null) {
-                parentRD.addFile(path.getFileName().toString());
+                ImageFile imageFile = parentRD.addFile(path.getFileName().toString());
+                final TreeItem<DisplayPath> childDirItem = createTreeItem(imageFile);
+                treeItem.getChildren().add(childDirItem);
             }else{
                 throw new NullPointerException("Try to add file to null repository dir");
             }
