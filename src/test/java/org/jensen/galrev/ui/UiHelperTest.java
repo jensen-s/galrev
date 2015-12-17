@@ -138,12 +138,12 @@ public class UiHelperTest {
 
     private void testItemFileContent(TreeItem<DisplayPath> subItem, String... filenames) {
         List<DisplayPath> children = subItem.getChildren().stream().map(TreeItem::getValue).collect(Collectors.toList());
-        long childFiles = children.stream().filter(dp -> dp.getImageFile() != null).count();
+        long childFiles = children.stream().filter(dp -> dp instanceof DisplayImage).count();
         assertEquals(filenames.length, (int) childFiles);
         List<String> filenameList = Arrays.asList(filenames);
         Optional<DisplayPath> wrongEntry = children.stream()
-                .filter(dp -> ((dp.getImageFile() != null) &&
-                        (!filenameList.contains(dp.getImageFile().getFilename()))))
+                .filter(dp -> ((dp instanceof DisplayImage) &&
+                        (!filenameList.contains(((DisplayImage) dp).getImageFile().getFilename()))))
                 .findAny();
         assertFalse("Did find this one although not expected: " + wrongEntry, wrongEntry.isPresent());
     }

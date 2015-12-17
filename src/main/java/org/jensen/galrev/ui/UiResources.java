@@ -18,6 +18,7 @@ public class UiResources {
     }
 
     public enum Images {
+        IMAGE_PLACEHOLDER("image-placeholder"),
         ARROW_LEFT("arrow-left"),
         ARROW_RIGHT("arrow-right"),
         DELETE("delete"),

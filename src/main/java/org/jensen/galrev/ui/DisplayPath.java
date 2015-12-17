@@ -1,6 +1,5 @@
 package org.jensen.galrev.ui;
 
-import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
 
 import java.nio.file.Path;
@@ -10,16 +9,7 @@ import java.nio.file.Path;
  */
 public class DisplayPath {
     private Path path;
-    private ImageFile imageFile;
     private RepositoryDir reposDir;
-
-    public ImageFile getImageFile() {
-        return imageFile;
-    }
-
-    public void setImageFile(ImageFile imageFile) {
-        this.imageFile = imageFile;
-    }
 
     public Path getPath() {
         return path;
@@ -41,7 +31,6 @@ public class DisplayPath {
     public String toString() {
         return "DisplayPath{" +
                 "path=" + path +
-                ", imageFile=" + imageFile +
                 ", reposDir=" + reposDir +
                 '}';
     }

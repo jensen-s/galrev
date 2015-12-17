@@ -102,10 +102,9 @@ public class UiHelper {
         return currentParent;
     }
 
-    private static void addFileChild(TreeItem<DisplayPath> treeItem, ImageFile imgFile) {
-        DisplayPath dp = new DisplayPath();
-        dp.setImageFile(imgFile);
-        treeItem.getChildren().add(new TreeItem<>(dp));
+    private static void addFileChild(TreeItem<DisplayPath> parentTreeItem, ImageFile imgFile) {
+        DisplayPath dp = new DisplayImage(parentTreeItem.getValue().getPath(), imgFile);
+        parentTreeItem.getChildren().add(new TreeItem<>(dp));
     }
 
     private static DisplayPath getDisplayPathByDir(RepositoryDir dir, Path path) {

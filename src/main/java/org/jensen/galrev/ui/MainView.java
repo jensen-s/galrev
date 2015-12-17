@@ -30,6 +30,7 @@ import org.jensen.galrev.model.entities.ReviewSet;
 import org.jensen.galrev.ui.translate.Texts;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -52,6 +53,9 @@ public class MainView {
     private static final String FXML_FILE_NAME = "mainview.fxml";
     private static final Logger logger = LogManager.getLogger(MainView.class);
     private static final boolean TEST_DATA = false;
+
+    @FXML
+    private ImageView ivDisplayedImage;
 
     @FXML
     private Text txtCurrentFile;
@@ -88,7 +92,7 @@ public class MainView {
 
     private StringProperty reviewSetNameProperty = new SimpleStringProperty();
     private SimpleObjectProperty<ReviewSet> reviewSetProperty=new SimpleObjectProperty<>();
-    private SimpleObjectProperty<ImageFile> currentFile = new SimpleObjectProperty<>();
+    private SimpleObjectProperty<DisplayImage> currentFile = new SimpleObjectProperty<>();
 
     public static Parent load(Stage stage) throws IOException {
         URL fxmlResource = MainView.class.getResource(FXML_FILE_NAME);
@@ -104,25 +108,63 @@ public class MainView {
 
     @FXML
     void initialize() {
-        Platform.runLater(()-> {
-                    progressIndicator.getScene().getWindow().setEventDispatcher((event, chain) -> {
-                        try {
-                            return chain.dispatchEvent(event);
-                        } catch (Exception e) {
-                            // TODO: Detailed error
-                            DialogHelper.showException(Texts.getText("messageGeneralException"), e);
-                            return null;
-                        }
-                    });
-                });
+        Platform.runLater(() -> {
+            progressIndicator.getScene().getWindow().setEventDispatcher((event, chain) -> {
+                try {
+                    return chain.dispatchEvent(event);
+                } catch (Exception e) {
+                    // TODO: Detailed error
+                    DialogHelper.showException(Texts.getText("messageGeneralException"), e);
+                    return null;
+                }
+            });
+        });
         setButtonImage(btnPrev, UiResources.Images.ARROW_LEFT);
         setButtonImage(btnDelete, UiResources.Images.DELETE);
         setButtonImage(btnUndo, UiResources.Images.UNDO);
         setButtonImage(btnAdd, UiResources.Images.FOLDER_ADD);
         setButtonImage(btnAccept, UiResources.Images.ACCEPT);
         setButtonImage(btnNext, UiResources.Images.ARROW_RIGHT);
+        ivDisplayedImage.setImage(UiResources.getImage(UiResources.Images.IMAGE_PLACEHOLDER));
         lblReviewName.textProperty().bind(reviewSetNameProperty);
+
+        txtCurrentFile.setText("");
+        currentFile.addListener(evt -> {
+            if (currentFile.get() == null) {
+                txtCurrentFile.setText("");
+                ivDisplayedImage.imageProperty().setValue(null);
+            } else {
+                txtCurrentFile.setText(currentFile.getValue().getImageFile().getFilename());
+                try {
+                    ivDisplayedImage.setImage(retrieveImage(currentFile.getValue()));
+                    ivDisplayedImage.setFitWidth(100d);
+                    ivDisplayedImage.setCache(true);
+                } catch (FileNotFoundException e) {
+                    logger.error("File not existent: " + currentFile.getValue().getPath());
+                    // TODO: Show error
+                }
+            }
+        });
+
+        reviewSetProperty.addListener(((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                reviewSetNameProperty.setValue(newValue.getName());
+                fillTree(newValue.getDirectories());
+            } else {
+                reviewSetNameProperty.setValue("");
+                fillTree(Collections.emptyList());
+            }
+        }));
         initTreeTable();
+        loadAsyncData();
+    }
+
+    private Image retrieveImage(DisplayImage displayImage) throws FileNotFoundException {
+
+        return ImageService.getInstance().getImage(displayImage.getPath());
+    }
+
+    private void loadAsyncData() {
         Task<Void> initTask = new Task<Void>() {
             private List<ReviewSet> allSets;
 
@@ -170,24 +212,6 @@ public class MainView {
             }
         };
         executor.submit(initTask);
-        txtCurrentFile.setText("");
-        currentFile.addListener(evt -> {
-            if (currentFile.get() == null) {
-                txtCurrentFile.setText("");
-            } else {
-                txtCurrentFile.setText(currentFile.getValue().getFilename());
-            }
-        });
-
-        reviewSetProperty.addListener(((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                reviewSetNameProperty.setValue(newValue.getName());
-                fillTree(newValue.getDirectories());
-            } else {
-                reviewSetNameProperty.setValue("");
-                fillTree(Collections.emptyList());
-            }
-        }));
     }
 
     private void fillTree(List<RepositoryDir> directories) {
@@ -204,7 +228,7 @@ public class MainView {
     private void addChild(TreeItem<DisplayPath> parent, RepositoryDir dir){
         TreeItem<DisplayPath> ti = createTreeItem(dir);
         parent.getChildren().add(ti);
-        dir.getFiles().forEach(imageFile -> ti.getChildren().add(createTreeItem(imageFile)));
+        dir.getFiles().forEach(imageFile -> ti.getChildren().add(createTreeItem(parent, imageFile)));
     }
 
     private TreeItem<DisplayPath> createTreeItem(RepositoryDir dir) {
@@ -214,10 +238,8 @@ public class MainView {
         return new TreeItem<>(dp);
     }
 
-    private TreeItem<DisplayPath> createTreeItem(ImageFile file) {
-        DisplayPath dp = new DisplayPath();
-        dp.setImageFile(file);
-        dp.setPath(Paths.get(file.getFilename()));
+    private TreeItem<DisplayPath> createTreeItem(TreeItem<DisplayPath> parent, ImageFile file) {
+        DisplayPath dp = new DisplayImage(parent.getValue().getPath(), file);
         return new TreeItem<>(dp);
     }
 
@@ -233,10 +255,10 @@ public class MainView {
             final DisplayPath displayPath = param.getValue().getValue();
             Path path = displayPath.getPath();
             String displayString="";
-            if (path != null){
+            if (displayPath instanceof DisplayImage) {
+                displayString = ((DisplayImage) displayPath).getImageFile().getFilename();
+            } else if (path != null) {
                 displayString = path.getFileName().toString();
-            }else if(displayPath.getImageFile() != null){
-                displayString = displayPath.getImageFile().getFilename();
             }else if(displayPath.getReposDir() != null){
                 displayString = displayPath.getReposDir().getPath();
             }
@@ -244,8 +266,8 @@ public class MainView {
         });
         colAccept.setCellValueFactory(param -> {
             boolean value = false;
-            if (param.getValue().getValue().getImageFile() != null){
-                value = FileState.REVIEWED.equals(param.getValue().getValue().getImageFile().getState());
+            if (param.getValue().getValue() instanceof DisplayImage) {
+                value = FileState.REVIEWED.equals(((DisplayImage) param.getValue().getValue()).getImageFile().getState());
             }
             return new SimpleBooleanProperty(value);
         });
@@ -260,8 +282,8 @@ public class MainView {
         });
         colDelete.setCellValueFactory(param -> {
             boolean value = false;
-            if (param.getValue().getValue().getImageFile() != null){
-                value = FileState.MARKED_FOR_DELETION.equals(param.getValue().getValue().getImageFile().getState());
+            if (param.getValue().getValue() instanceof DisplayImage) {
+                value = FileState.MARKED_FOR_DELETION.equals(((DisplayImage) param.getValue().getValue()).getImageFile().getState());
             }
             return new SimpleBooleanProperty(value);
         });
@@ -277,8 +299,8 @@ public class MainView {
         ttvFiles.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         ttvFiles.getSelectionModel().selectedItemProperty().addListener(c -> {
             TreeItem<DisplayPath> selectedItem = ttvFiles.getSelectionModel().getSelectedItem();
-            if (selectedItem != null) {
-                currentFile.set(selectedItem.getValue().getImageFile());
+            if (selectedItem != null && selectedItem.getValue() instanceof DisplayImage) {
+                currentFile.set((DisplayImage) selectedItem.getValue());
             } else {
                 currentFile.set(null);
             }
@@ -286,8 +308,7 @@ public class MainView {
     }
 
     private TreeItem<DisplayPath> createDummyTreeItem(String filename) {
-        DisplayPath root = new DisplayPath();
-        root.setImageFile(new ImageFile());
+        DisplayImage root = new DisplayImage(null, new ImageFile());
         root.getImageFile().setFilename(filename);
         return new TreeItem<>(root);
     }
@@ -342,7 +363,7 @@ public class MainView {
         }else{
             if (parentRD != null) {
                 ImageFile imageFile = parentRD.addFile(path.getFileName().toString());
-                final TreeItem<DisplayPath> childDirItem = createTreeItem(imageFile);
+                final TreeItem<DisplayPath> childDirItem = createTreeItem(treeItem, imageFile);
                 treeItem.getChildren().add(childDirItem);
             }else{
                 throw new NullPointerException("Try to add file to null repository dir");
