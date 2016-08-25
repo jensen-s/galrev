@@ -62,4 +62,8 @@ public class Texts {
         //final InputStream stream = Texts.class.getClassLoader().getResourceAsStream(name);
         return stream;
     }
+
+    public static HashMap<String, HashSet<String>> getMissingTexts() {
+        return missingKeys;
+    }
 }
