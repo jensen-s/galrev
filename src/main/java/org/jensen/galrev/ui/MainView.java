@@ -14,6 +14,7 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Region;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -27,6 +28,7 @@ import org.jensen.galrev.model.entities.FileState;
 import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
+import org.jensen.galrev.settings.GalRevSettings;
 import org.jensen.galrev.ui.translate.Texts;
 
 import java.io.File;
@@ -53,6 +55,17 @@ public class MainView {
     private static final String FXML_FILE_NAME = "mainview.fxml";
     private static final Logger logger = LogManager.getLogger(MainView.class);
     private static final boolean TEST_DATA = false;
+
+    @FXML
+    private SplitPane contentPane;
+    @FXML
+    private MenuItem miDeleteReview;
+    @FXML
+    private MenuItem miCommitReview;
+    @FXML
+    private MenuItem miRenameReviewSet;
+    @FXML
+    private MenuItem miMissingTexts;
 
     @FXML
     private ImageView ivDisplayedImage;
@@ -134,29 +147,59 @@ public class MainView {
                 txtCurrentFile.setText("");
                 ivDisplayedImage.imageProperty().setValue(null);
             } else {
-                txtCurrentFile.setText(currentFile.getValue().getImageFile().getFilename());
-                try {
-                    ivDisplayedImage.setImage(retrieveImage(currentFile.getValue()));
-                    ivDisplayedImage.setFitWidth(100d);
-                    ivDisplayedImage.setCache(true);
-                } catch (FileNotFoundException e) {
-                    logger.error("File not existent: " + currentFile.getValue().getPath());
-                    // TODO: Show error
+                DisplayImage displayImage = currentFile.getValue();
+                txtCurrentFile.setText(displayImage.getImageFile().getFilename());
+                if (displayImage.getPath() != null) {
+                    try {
+                        final Image image = retrieveImage(displayImage);
+                        ivDisplayedImage.setImage(image);
+                        layoutImageView();
+                        ivDisplayedImage.setCache(true);
+                        ivDisplayedImage.setVisible(true);
+                    } catch (FileNotFoundException e) {
+                        logger.error("File not existent: " + displayImage.getPath());
+                        // TODO: Show error
+                    }
                 }
             }
         });
 
         reviewSetProperty.addListener(((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                reviewSetNameProperty.setValue(newValue.getName());
-                fillTree(newValue.getDirectories());
-            } else {
-                reviewSetNameProperty.setValue("");
-                fillTree(Collections.emptyList());
-            }
+            handleReviewSetSelected(newValue);
         }));
+        ((Region) ivDisplayedImage.getParent()).heightProperty().addListener((a, b, c) -> layoutImageView());
+        ((Region) ivDisplayedImage.getParent()).widthProperty().addListener((a, b, c) -> layoutImageView());
         initTreeTable();
+        miMissingTexts.setVisible(GalRevSettings.isDeveloperMode());
         loadAsyncData();
+    }
+
+    private void handleReviewSetSelected(ReviewSet newValue) {
+        final boolean reviewMissing = newValue == null;
+        miCommitReview.setDisable(reviewMissing);
+        miDeleteReview.setDisable(reviewMissing);
+        miRenameReviewSet.setDisable(reviewMissing);
+        contentPane.setDisable(reviewMissing);
+        if (!reviewMissing) {
+            reviewSetNameProperty.setValue(newValue.getName());
+            fillTree(newValue.getDirectories());
+        } else {
+            reviewSetNameProperty.setValue("");
+            fillTree(Collections.emptyList());
+        }
+    }
+
+    private void layoutImageView() {
+        Image image = ivDisplayedImage.getImage();
+        if (image != null) {
+            final double fitWidth = image.getWidth();
+            logger.debug("fit width: " + fitWidth);
+            double layoutHeight = ((Region) ivDisplayedImage.getParent()).getHeight();
+            double layoutWidth = ((Region) ivDisplayedImage.getParent()).getWidth();
+            final double fitHeight = image.getHeight();
+            ivDisplayedImage.setFitWidth(Math.min(fitWidth, layoutWidth));
+            ivDisplayedImage.setFitHeight(Math.min(fitHeight, layoutHeight));
+        }
     }
 
     private Image retrieveImage(DisplayImage displayImage) throws FileNotFoundException {
@@ -251,17 +294,45 @@ public class MainView {
     }
 
     private void initTreeTable() {
+        colFile.setCellFactory(tv -> {
+            final TreeTableCell<DisplayPath, String> cell = new TreeTableCell<DisplayPath, String>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (!empty) {
+                        DisplayPath displayPath = getTreeTableRow().getItem();
+                        if (displayPath != null) {
+                            Path path = displayPath.getPath();
+                            String displayString;
+                            if (path != null) {
+                                setTooltip(new Tooltip(path.toString()));
+                            } else {
+                                setTooltip(null);
+                            }
+                            if (displayPath instanceof DisplayImage) {
+                                displayString = ((DisplayImage) displayPath).getImageFile().getFilename();
+                            } else if (path != null) {
+                                displayString = path.getFileName().toString();
+                            } else if (displayPath.getReposDir() != null) {
+                                displayString = displayPath.getReposDir().getPath();
+                            } else {
+                                displayString = "xxx";
+                            }
+                            setText(displayString);
+                        }
+                    } else {
+                        setText(null);
+                    }
+                }
+            };
+
+            return cell;
+        });
         colFile.setCellValueFactory(param -> {
             final DisplayPath displayPath = param.getValue().getValue();
-            Path path = displayPath.getPath();
+
             String displayString="";
-            if (displayPath instanceof DisplayImage) {
-                displayString = ((DisplayImage) displayPath).getImageFile().getFilename();
-            } else if (path != null) {
-                displayString = path.getFileName().toString();
-            }else if(displayPath.getReposDir() != null){
-                displayString = displayPath.getReposDir().getPath();
-            }
+
             return new SimpleStringProperty(displayString);
         });
         colAccept.setCellValueFactory(param -> {
@@ -443,4 +514,23 @@ public class MainView {
             reviewSetNameProperty.set(result.get());
         }
     }
+
+    public void deleteReviewSetSelected(ActionEvent actionEvent) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle(getText("titleDeleteReviewSet"));
+        alert.setContentText(getText("questionDeleteReviewSet"));
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            provider.deleteReviewSet(reviewSetProperty.get());
+            reviewSetProperty.set(null);
+        }
+
+
+    }
+
+    @FXML
+    private void missingTextsSelected(ActionEvent actionEvent) {
+        MissingTexts.open();
+    }
+
 }

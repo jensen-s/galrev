@@ -11,9 +11,6 @@ import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
-/**
- * Created by jensen on 21.05.15.
- */
 public class FileCrawlerTest extends PhysicalFileTest {
     private static final int MIN_FILES_TOP_DIR = 10;
     private static final int MAX_FILES_PER_DIR = 30;

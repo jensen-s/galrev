@@ -26,7 +26,6 @@ public class ImageService {
         logger.debug("Load image from path " + imagePath);
         final Image image = new Image(imagePath.toUri().toString());
 
-        logger.debug("Loaded image " + image);
         return image;
     }
 }

@@ -2,11 +2,12 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 <BorderPane xmlns="http://javafx.com/javafx/8.0.40" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.jensen.galrev.ui.MainView">
    <center>
-      <SplitPane dividerPositions="0.5" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0">
+       <SplitPane fx:id="contentPane" disable="true" dividerPositions="0.5">
          <items>
             <BorderPane prefHeight="200.0" prefWidth="200.0">
                <top>
@@ -38,8 +39,13 @@
             </BorderPane>
             <BorderPane prefHeight="200.0" prefWidth="200.0">
                <center>
-                   <ImageView fx:id="ivDisplayedImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true"
-                              preserveRatio="true" visible="false" BorderPane.alignment="CENTER"/>
+                   <Pane BorderPane.alignment="CENTER">
+                       <children>
+                           <ImageView fx:id="ivDisplayedImage" fitHeight="150.0" fitWidth="200.0" pickOnBounds="true"
+                                      preserveRatio="true" style="-fx-border-color: green; -fx-border-width: 2;"
+                                      visible="false"/>
+                       </children>
+                   </Pane>
                </center>
                <bottom>
                   <GridPane BorderPane.alignment="CENTER">
@@ -76,14 +82,24 @@
                   <items>
                     <MenuItem mnemonicParsing="false" onAction="#selectReviewSetSelected" text="%menu.selectReviewSet" />
                     <MenuItem mnemonicParsing="false" onAction="#addReviewSetSelected" text="%menu.addReviewSet" />
-                  <MenuItem mnemonicParsing="false" onAction="#renameReviewSetSelected" text="%menu.renameReviewSet" />
-                    <MenuItem mnemonicParsing="false" onAction="#commitReviewSelected" text="%menu.commitReview" />
-                    <MenuItem mnemonicParsing="false" onAction="#quitSelected" text="%menu.exit" />
+                      <MenuItem fx:id="miRenameReviewSet" mnemonicParsing="false" onAction="#renameReviewSetSelected"
+                                text="%menu.renameReviewSet"/>
+                      <MenuItem fx:id="miDeleteReview" disable="true" mnemonicParsing="false"
+                                onAction="#deleteReviewSetSelected" text="%menu.deleteMenu"/>
+                      <MenuItem fx:id="miCommitReview" disable="true" mnemonicParsing="false"
+                                onAction="#commitReviewSelected" text="%menu.commitReview"/>
+                      <MenuItem mnemonicParsing="false" onAction="#quitSelected" text="%menu.exit">
+                          <accelerator>
+                              <KeyCodeCombination alt="DOWN" code="F4" control="UP" meta="UP" shift="UP" shortcut="UP"/>
+                          </accelerator>
+                      </MenuItem>
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Help">
                   <items>
                     <MenuItem mnemonicParsing="false" text="About" />
+                      <MenuItem fx:id="miMissingTexts" mnemonicParsing="false" onAction="#missingTextsSelected"
+                                text="Missing texts"/>
                   </items>
                 </Menu>
               </menus>
