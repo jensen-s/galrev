@@ -5,6 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
+import org.jensen.galrev.ui.uimodel.ReviewTreeEntry;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -13,9 +14,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Created by jensen on 08.12.15.
- */
 public class UiHelper {
 
     private static Logger logger = LogManager.getLogger(UiHelper.class);
@@ -35,14 +33,14 @@ public class UiHelper {
      * @param repositoryDirList
      * @return The list of missing paths
      */
-    public static List<Path> fillTreeItem(TreeItem<DisplayPath> root, List<RepositoryDir> repositoryDirList) {
+    public static List<Path> fillTreeItem(TreeItem<ReviewTreeEntry> root, List<RepositoryDir> repositoryDirList) {
         repositoryDirList.sort(Comparator.comparing(RepositoryDir::getPath));
         return buildTreeFromSortedDirList(root, repositoryDirList);
 
     }
 
-    private static List<Path> buildTreeFromSortedDirList(TreeItem<DisplayPath> root, List<RepositoryDir> repositoryDirList) {
-        TreeItem<DisplayPath> currentParent = root;
+    private static List<Path> buildTreeFromSortedDirList(TreeItem<ReviewTreeEntry> root, List<RepositoryDir> repositoryDirList) {
+        TreeItem<ReviewTreeEntry> currentParent = root;
         List<Path> missingPaths = new ArrayList<>();
         for (RepositoryDir dir : repositoryDirList) {
             logger.debug("Handle dir " + dir + " (currentParent: " + currentParent.getValue() + ")");
@@ -76,7 +74,7 @@ public class UiHelper {
         return dir.getPath().startsWith(parentPath);
     }
 
-    private static TreeItem<DisplayPath> extractMissingIntermediateDirs(TreeItem<DisplayPath> currentParent, List<Path> missingPaths, String parentPath, String extension) {
+    private static TreeItem<ReviewTreeEntry> extractMissingIntermediateDirs(TreeItem<ReviewTreeEntry> currentParent, List<Path> missingPaths, String parentPath, String extension) {
         String[] parts = extension.split(File.separator);
         String missing = parentPath + File.separator;
         for (int i = 0; i < parts.length - 1; i++) {
@@ -84,33 +82,30 @@ public class UiHelper {
             final Path aMissingPath = Paths.get(missing);
             missingPaths.add(aMissingPath);
             missing += File.separator;
-            DisplayPath dp = new DisplayPath();
-            dp.setPath(aMissingPath);
-            TreeItem<DisplayPath> treeItem = new TreeItem<>(dp);
+            ReviewTreeEntry dp = new ReviewTreeEntry(aMissingPath);
+            TreeItem<ReviewTreeEntry> treeItem = new TreeItem<>(dp);
             currentParent.getChildren().add(treeItem);
             currentParent = treeItem;
         }
         return currentParent;
     }
 
-    private static TreeItem<DisplayPath> addDirAsChildTreeItem(TreeItem<DisplayPath> currentParent, RepositoryDir dir) {
-        DisplayPath dp = getDisplayPathByDir(dir, Paths.get(dir.getPath()));
-        final TreeItem<DisplayPath> treeItem = new TreeItem<>(dp);
+    private static TreeItem<ReviewTreeEntry> addDirAsChildTreeItem(TreeItem<ReviewTreeEntry> currentParent, RepositoryDir dir) {
+        ReviewTreeEntry dp = getReviewTreeEntryByDir(dir, Paths.get(dir.getPath()));
+        final TreeItem<ReviewTreeEntry> treeItem = new TreeItem<>(dp);
         currentParent.getChildren().add(treeItem);
         currentParent = treeItem;
         dir.getFiles().forEach(imgFile -> addFileChild(treeItem, imgFile));
         return currentParent;
     }
 
-    private static void addFileChild(TreeItem<DisplayPath> parentTreeItem, ImageFile imgFile) {
-        DisplayPath dp = new DisplayImage(parentTreeItem.getValue().getPath(), imgFile);
+    private static void addFileChild(TreeItem<ReviewTreeEntry> parentTreeItem, ImageFile imgFile) {
+        ReviewTreeEntry dp = new ReviewTreeEntry(parentTreeItem.getValue().getPath(), imgFile);
         parentTreeItem.getChildren().add(new TreeItem<>(dp));
     }
 
-    private static DisplayPath getDisplayPathByDir(RepositoryDir dir, Path path) {
-        DisplayPath dp = new DisplayPath();
-        dp.setReposDir(dir);
-        dp.setPath(path);
+    private static ReviewTreeEntry getReviewTreeEntryByDir(RepositoryDir dir, Path path) {
+        ReviewTreeEntry dp = new ReviewTreeEntry(dir, path);
         return dp;
     }
 

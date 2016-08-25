@@ -1,7 +1,6 @@
 package org.jensen.galrev.ui;
 
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
@@ -11,6 +10,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.TreeItemPropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
@@ -30,6 +30,7 @@ import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
 import org.jensen.galrev.settings.GalRevSettings;
 import org.jensen.galrev.ui.translate.Texts;
+import org.jensen.galrev.ui.uimodel.ReviewTreeEntry;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -79,7 +80,7 @@ public class MainView {
     @FXML
     private ProgressIndicator progressIndicator;
     @FXML
-    private TreeTableView<DisplayPath> ttvFiles;
+    private TreeTableView<ReviewTreeEntry> ttvFiles;
     @FXML
     private Button btnPrev;
     @FXML
@@ -93,11 +94,11 @@ public class MainView {
     @FXML
     private Button btnNext;
     @FXML
-    private TreeTableColumn<DisplayPath, String> colFile;
+    private TreeTableColumn<ReviewTreeEntry, String> colFile;
     @FXML
-    private TreeTableColumn<DisplayPath, Boolean> colAccept;
+    private TreeTableColumn<ReviewTreeEntry, Boolean> colAccept;
     @FXML
-    private TreeTableColumn<DisplayPath, Boolean> colDelete;
+    private TreeTableColumn<ReviewTreeEntry, Boolean> colDelete;
 
     private static ExecutorService executor = Executors.newFixedThreadPool(1);
 
@@ -105,7 +106,7 @@ public class MainView {
 
     private StringProperty reviewSetNameProperty = new SimpleStringProperty();
     private SimpleObjectProperty<ReviewSet> reviewSetProperty=new SimpleObjectProperty<>();
-    private SimpleObjectProperty<DisplayImage> currentFile = new SimpleObjectProperty<>();
+    private SimpleObjectProperty<ReviewTreeEntry> currentFile = new SimpleObjectProperty<>();
 
     public static Parent load(Stage stage) throws IOException {
         URL fxmlResource = MainView.class.getResource(FXML_FILE_NAME);
@@ -147,17 +148,17 @@ public class MainView {
                 txtCurrentFile.setText("");
                 ivDisplayedImage.imageProperty().setValue(null);
             } else {
-                DisplayImage displayImage = currentFile.getValue();
-                txtCurrentFile.setText(displayImage.getImageFile().getFilename());
-                if (displayImage.getPath() != null) {
+                ReviewTreeEntry ReviewTreeEntry = currentFile.getValue();
+                txtCurrentFile.setText(ReviewTreeEntry.getImageFile().getFilename());
+                if (ReviewTreeEntry.getPath() != null) {
                     try {
-                        final Image image = retrieveImage(displayImage);
+                        final Image image = retrieveImage(ReviewTreeEntry);
                         ivDisplayedImage.setImage(image);
                         layoutImageView();
                         ivDisplayedImage.setCache(true);
                         ivDisplayedImage.setVisible(true);
                     } catch (FileNotFoundException e) {
-                        logger.error("File not existent: " + displayImage.getPath());
+                        logger.error("File not existent: " + ReviewTreeEntry.getPath());
                         // TODO: Show error
                     }
                 }
@@ -202,9 +203,9 @@ public class MainView {
         }
     }
 
-    private Image retrieveImage(DisplayImage displayImage) throws FileNotFoundException {
+    private Image retrieveImage(ReviewTreeEntry ReviewTreeEntry) throws FileNotFoundException {
 
-        return ImageService.getInstance().getImage(displayImage.getPath());
+        return ImageService.getInstance().getImage(ReviewTreeEntry.getPath());
     }
 
     private void loadAsyncData() {
@@ -260,7 +261,7 @@ public class MainView {
     private void fillTree(List<RepositoryDir> directories) {
 
 
-        TreeItem<DisplayPath> rootItem = createDummyTreeItem(getText("labelDirectories"));
+        TreeItem<ReviewTreeEntry> rootItem = createDummyTreeItem(getText("labelDirectories"));
         List<Path> missingPaths = UiHelper.fillTreeItem(rootItem, directories);
         if (!missingPaths.isEmpty()) {
             throw new RuntimeException("Implement handling of missing paths!");
@@ -268,21 +269,19 @@ public class MainView {
         ttvFiles.setRoot(rootItem);
     }
 
-    private void addChild(TreeItem<DisplayPath> parent, RepositoryDir dir){
-        TreeItem<DisplayPath> ti = createTreeItem(dir);
+    private void addChild(TreeItem<ReviewTreeEntry> parent, RepositoryDir dir) {
+        TreeItem<ReviewTreeEntry> ti = createTreeItem(dir);
         parent.getChildren().add(ti);
         dir.getFiles().forEach(imageFile -> ti.getChildren().add(createTreeItem(parent, imageFile)));
     }
 
-    private TreeItem<DisplayPath> createTreeItem(RepositoryDir dir) {
-        DisplayPath dp = new DisplayPath();
-        dp.setReposDir(dir);
-        dp.setPath(Paths.get(dir.getPath()));
+    private TreeItem<ReviewTreeEntry> createTreeItem(RepositoryDir dir) {
+        ReviewTreeEntry dp = new ReviewTreeEntry(dir, Paths.get(dir.getPath()));
         return new TreeItem<>(dp);
     }
 
-    private TreeItem<DisplayPath> createTreeItem(TreeItem<DisplayPath> parent, ImageFile file) {
-        DisplayPath dp = new DisplayImage(parent.getValue().getPath(), file);
+    private TreeItem<ReviewTreeEntry> createTreeItem(TreeItem<ReviewTreeEntry> parent, ImageFile file) {
+        ReviewTreeEntry dp = new ReviewTreeEntry(parent.getValue().getPath(), file);
         return new TreeItem<>(dp);
     }
 
@@ -294,30 +293,33 @@ public class MainView {
     }
 
     private void initTreeTable() {
+        colFile.setCellValueFactory(new TreeItemPropertyValueFactory<ReviewTreeEntry, String>("fileName"));
+
         colFile.setCellFactory(tv -> {
-            final TreeTableCell<DisplayPath, String> cell = new TreeTableCell<DisplayPath, String>() {
+            final TreeTableCell<ReviewTreeEntry, String> cell = new TreeTableCell<ReviewTreeEntry, String>() {
                 @Override
                 protected void updateItem(String item, boolean empty) {
                     super.updateItem(item, empty);
                     if (!empty) {
-                        DisplayPath displayPath = getTreeTableRow().getItem();
-                        if (displayPath != null) {
-                            Path path = displayPath.getPath();
+                        ReviewTreeEntry treeEntry = getTreeTableRow().getItem();
+                        if (treeEntry != null) {
+                            Path path = treeEntry.getPath();
                             String displayString;
                             if (path != null) {
                                 setTooltip(new Tooltip(path.toString()));
                             } else {
                                 setTooltip(null);
                             }
-                            if (displayPath instanceof DisplayImage) {
-                                displayString = ((DisplayImage) displayPath).getImageFile().getFilename();
-                            } else if (path != null) {
-                                displayString = path.getFileName().toString();
-                            } else if (displayPath.getReposDir() != null) {
-                                displayString = displayPath.getReposDir().getPath();
-                            } else {
-                                displayString = "xxx";
-                            }
+                            displayString = treeEntry.getFileName();
+//                            if (treeEntry.getImageFile() != null) {
+//                                displayString = ((ReviewTreeEntry) treeEntry).getImageFile().getFilename();
+//                            } else if (path != null) {
+//                                displayString = path.getFileName().toString();
+//                            } else if (treeEntry.getRepositoryDir() != null) {
+//                                displayString = treeEntry.getRepositoryDir().getPath();
+//                            } else {
+//                                displayString = "xxx";
+//                            }
                             setText(displayString);
                         }
                     } else {
@@ -329,20 +331,14 @@ public class MainView {
             return cell;
         });
         colFile.setCellValueFactory(param -> {
-            final DisplayPath displayPath = param.getValue().getValue();
+            final ReviewTreeEntry ReviewTreeEntry = param.getValue().getValue();
 
             String displayString="";
 
             return new SimpleStringProperty(displayString);
         });
-        colAccept.setCellValueFactory(param -> {
-            boolean value = false;
-            if (param.getValue().getValue() instanceof DisplayImage) {
-                value = FileState.REVIEWED.equals(((DisplayImage) param.getValue().getValue()).getImageFile().getState());
-            }
-            return new SimpleBooleanProperty(value);
-        });
-        colAccept.setCellFactory(param -> new TreeTableCell<DisplayPath, Boolean>() {
+        colAccept.setCellValueFactory(new TreeItemPropertyValueFactory<>("accepted"));
+        colAccept.setCellFactory(param -> new TreeTableCell<ReviewTreeEntry, Boolean>() {
             @Override
             protected void updateItem(Boolean item, boolean empty) {
                 if (Boolean.TRUE.equals(item)) {
@@ -351,14 +347,8 @@ public class MainView {
                 }
             }
         });
-        colDelete.setCellValueFactory(param -> {
-            boolean value = false;
-            if (param.getValue().getValue() instanceof DisplayImage) {
-                value = FileState.MARKED_FOR_DELETION.equals(((DisplayImage) param.getValue().getValue()).getImageFile().getState());
-            }
-            return new SimpleBooleanProperty(value);
-        });
-        colDelete.setCellFactory(param -> new TreeTableCell<DisplayPath, Boolean>() {
+        colDelete.setCellValueFactory(new TreeItemPropertyValueFactory<>("toDelete"));
+        colDelete.setCellFactory(param -> new TreeTableCell<ReviewTreeEntry, Boolean>() {
             @Override
             protected void updateItem(Boolean item, boolean empty) {
                 if (Boolean.TRUE.equals(item)) {
@@ -369,18 +359,19 @@ public class MainView {
         });
         ttvFiles.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         ttvFiles.getSelectionModel().selectedItemProperty().addListener(c -> {
-            TreeItem<DisplayPath> selectedItem = ttvFiles.getSelectionModel().getSelectedItem();
-            if (selectedItem != null && selectedItem.getValue() instanceof DisplayImage) {
-                currentFile.set((DisplayImage) selectedItem.getValue());
+            TreeItem<ReviewTreeEntry> selectedItem = ttvFiles.getSelectionModel().getSelectedItem();
+            if (selectedItem != null && selectedItem.getValue() instanceof ReviewTreeEntry) {
+                currentFile.set((ReviewTreeEntry) selectedItem.getValue());
             } else {
                 currentFile.set(null);
             }
         });
     }
 
-    private TreeItem<DisplayPath> createDummyTreeItem(String filename) {
-        DisplayImage root = new DisplayImage(null, new ImageFile());
-        root.getImageFile().setFilename(filename);
+    private TreeItem<ReviewTreeEntry> createDummyTreeItem(String filename) {
+        ImageFile imageFile = new ImageFile();
+        imageFile.setFilename(filename);
+        ReviewTreeEntry root = new ReviewTreeEntry(null, imageFile);
         return new TreeItem<>(root);
     }
 
@@ -422,11 +413,11 @@ public class MainView {
         provider.mergeReviewSet(reviewSetProperty.get());
     }
 
-    private void addCrawledEntity(RepositoryDir parentRD, TreeItem<DisplayPath> treeItem, CrawledEntity ce) {
+    private void addCrawledEntity(RepositoryDir parentRD, TreeItem<ReviewTreeEntry> treeItem, CrawledEntity ce) {
         Path path = ce.getPath();
         if (Files.isDirectory(path)){
             RepositoryDir repositoryDir = reviewSetProperty.get().addDirectory(path);
-            final TreeItem<DisplayPath> childDirItem = createTreeItem(repositoryDir);
+            final TreeItem<ReviewTreeEntry> childDirItem = createTreeItem(repositoryDir);
             treeItem.getChildren().add(childDirItem);
             ce.getChildren().forEach(childCe -> {
                 addCrawledEntity(repositoryDir, childDirItem, childCe);
@@ -434,7 +425,7 @@ public class MainView {
         }else{
             if (parentRD != null) {
                 ImageFile imageFile = parentRD.addFile(path.getFileName().toString());
-                final TreeItem<DisplayPath> childDirItem = createTreeItem(treeItem, imageFile);
+                final TreeItem<ReviewTreeEntry> childDirItem = createTreeItem(treeItem, imageFile);
                 treeItem.getChildren().add(childDirItem);
             }else{
                 throw new NullPointerException("Try to add file to null repository dir");
@@ -444,7 +435,10 @@ public class MainView {
 
     @FXML
     void delete(ActionEvent event) {
-
+        ReviewTreeEntry ReviewTreeEntry = currentFile.get();
+        if (ReviewTreeEntry != null) {
+            ReviewTreeEntry.setFileState(FileState.MARKED_FOR_DELETION);
+        }
     }
 
     @FXML
