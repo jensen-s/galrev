@@ -1,9 +1,9 @@
 package org.jensen.galrev.app;
 
 /**
- * Created by jensen on 09.04.15.
+ * Class providing revision information to be displayed.
  */
-public class AppInfo {
+class AppInfo {
     private static final String APPLICATION_NAME = "GalRev";
     private static final String MAJOR_VERSION = "1";
     private static final String MINOR_VERSION = "0";

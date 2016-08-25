@@ -11,8 +11,8 @@ import java.nio.file.Path;
  * Created by jensen on 17.12.15.
  */
 public class ImageService {
-    private static ImageService instance = new ImageService();
-    private Logger logger = LogManager.getLogger(ImageService.class);
+    private static final ImageService instance = new ImageService();
+    private final Logger logger = LogManager.getLogger(ImageService.class);
 
     public static ImageService getInstance() {
         return instance;

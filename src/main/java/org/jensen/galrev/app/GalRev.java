@@ -6,21 +6,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jensen.galrev.model.JpaAccess;
 import org.jensen.galrev.settings.GalRevSettings;
 import org.jensen.galrev.ui.MainView;
-
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 import org.jensen.galrev.ui.translate.Texts;
 
 import java.util.Optional;
 
 import static org.jensen.galrev.ui.translate.Texts.getText;
 
-/**
- * Created by jensen on 09.04.15.
- */
 public class GalRev extends Application{
 
     private static final Logger logger = LogManager.getLogger(GalRev.class);

@@ -10,9 +10,6 @@ import org.jensen.galrev.ui.translate.Texts;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-/**
- * Created by jensen on 06.12.15.
- */
 public class DialogHelper {
     public static void showException(String message, Exception ex){
         Alert alert = new Alert(Alert.AlertType.ERROR);

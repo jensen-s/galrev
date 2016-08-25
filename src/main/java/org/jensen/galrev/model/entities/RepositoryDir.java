@@ -23,7 +23,7 @@ public class RepositoryDir {
     private String path;
     
     private List<ImageFile> files;
-    private Logger logger = LogManager.getLogger();
+    private final Logger logger = LogManager.getLogger();
 
     @Id
     @Column(name = "id")

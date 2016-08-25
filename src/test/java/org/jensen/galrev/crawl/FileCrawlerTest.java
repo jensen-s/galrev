@@ -34,11 +34,9 @@ public class FileCrawlerTest extends PhysicalFileTest {
     }
 
     private void checkType(List<CrawledEntity> ceList) {
-        for (CrawledEntity ce: ceList){
-            if (!ceList.isEmpty()){
-                assertThat(Files.isDirectory(ce.getPath()), is(true));
-            }
-        }
+        ceList.stream().filter(ce -> !ceList.isEmpty()).forEach(ce -> {
+            assertThat(Files.isDirectory(ce.getPath()), is(true));
+        });
     }
 
     private int getFileCount(List<CrawledEntity> resultList) {

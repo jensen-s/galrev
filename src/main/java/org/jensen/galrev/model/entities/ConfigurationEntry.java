@@ -9,7 +9,7 @@ import javax.persistence.*;
 @Entity
 @Table(name=DbConstants.TABLE_PREFIX+"config_entry")
 @SequenceGenerator(name = ConfigurationEntry.SEQ_ID, sequenceName = ConfigurationEntry.SEQ_NAME)
-public class ConfigurationEntry {
+class ConfigurationEntry {
 
     protected static final String SEQ_NAME = DbConstants.SEQ_PREFIX+"config_entry_id";
     protected static final String SEQ_ID = DbConstants.SEQ_PREFIX+"ConfigEntry";

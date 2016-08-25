@@ -16,7 +16,7 @@ public class Texts {
     public static final String BUNDLE_PACKAGE = Texts.class.getPackage().getName();
     private static Locale locale = Locale.getDefault();
     private static ResourceBundle bundle;
-    private static HashMap<String,HashSet<String>> missingKeys = new HashMap<>();
+    private static final HashMap<String, HashSet<String>> missingKeys = new HashMap<>();
 
     public static String getText(String key, Object... params){
         if (bundle == null){

@@ -4,12 +4,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by jensen on 21.05.15.
- */
 public class CrawledEntity {
-    private Path path;
-    private List<CrawledEntity> children = new ArrayList<>();
+    private final Path path;
+    private final List<CrawledEntity> children = new ArrayList<>();
 
     public CrawledEntity(Path path){
         this.path = path;

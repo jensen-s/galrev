@@ -13,7 +13,7 @@ import java.util.Properties;
 public class GalRevSettings {
     private static final String SETTINGS_FILE = "galrev.properties";
     private static final String PREFIX = "galrev";
-    private static GalRevSettings instance = new GalRevSettings();
+    private static final GalRevSettings instance = new GalRevSettings();
 
     private String persistenceUnit;
     private boolean developerMode;

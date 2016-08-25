@@ -100,13 +100,13 @@ public class MainView {
     @FXML
     private TreeTableColumn<ReviewTreeEntry, Boolean> colDelete;
 
-    private static ExecutorService executor = Executors.newFixedThreadPool(1);
+    private static final ExecutorService executor = Executors.newFixedThreadPool(1);
 
-    private ReviewProvider provider = ReviewProvider.getInstance();
+    private final ReviewProvider provider = ReviewProvider.getInstance();
 
-    private StringProperty reviewSetNameProperty = new SimpleStringProperty();
-    private SimpleObjectProperty<ReviewSet> reviewSetProperty=new SimpleObjectProperty<>();
-    private SimpleObjectProperty<ReviewTreeEntry> currentFile = new SimpleObjectProperty<>();
+    private final StringProperty reviewSetNameProperty = new SimpleStringProperty();
+    private final SimpleObjectProperty<ReviewSet> reviewSetProperty = new SimpleObjectProperty<>();
+    private final SimpleObjectProperty<ReviewTreeEntry> currentFile = new SimpleObjectProperty<>();
 
     public static Parent load(Stage stage) throws IOException {
         URL fxmlResource = MainView.class.getResource(FXML_FILE_NAME);
@@ -122,17 +122,15 @@ public class MainView {
 
     @FXML
     void initialize() {
-        Platform.runLater(() -> {
-            progressIndicator.getScene().getWindow().setEventDispatcher((event, chain) -> {
-                try {
-                    return chain.dispatchEvent(event);
-                } catch (Exception e) {
-                    // TODO: Detailed error
-                    DialogHelper.showException(Texts.getText("messageGeneralException"), e);
-                    return null;
-                }
-            });
-        });
+        Platform.runLater(() -> progressIndicator.getScene().getWindow().setEventDispatcher((event, chain) -> {
+            try {
+                return chain.dispatchEvent(event);
+            } catch (Exception e) {
+                // TODO: Detailed error
+                DialogHelper.showException(Texts.getText("messageGeneralException"), e);
+                return null;
+            }
+        }));
         setButtonImage(btnPrev, UiResources.Images.ARROW_LEFT);
         setButtonImage(btnDelete, UiResources.Images.DELETE);
         setButtonImage(btnUndo, UiResources.Images.UNDO);
@@ -287,13 +285,11 @@ public class MainView {
 
     private void initKeyHandling(Stage stage) {
 
-        stage.addEventHandler(KeyEvent.KEY_PRESSED, evt -> {
-            System.out.println("Key pressed: " + evt.getCharacter() + "/" + evt.getText());
-        });
+        stage.addEventHandler(KeyEvent.KEY_PRESSED, evt -> System.out.println("Key pressed: " + evt.getCharacter() + "/" + evt.getText()));
     }
 
     private void initTreeTable() {
-        colFile.setCellValueFactory(new TreeItemPropertyValueFactory<ReviewTreeEntry, String>("fileName"));
+        colFile.setCellValueFactory(new TreeItemPropertyValueFactory<>("fileName"));
 
         colFile.setCellFactory(tv -> {
             final TreeTableCell<ReviewTreeEntry, String> cell = new TreeTableCell<ReviewTreeEntry, String>() {
@@ -360,8 +356,8 @@ public class MainView {
         ttvFiles.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         ttvFiles.getSelectionModel().selectedItemProperty().addListener(c -> {
             TreeItem<ReviewTreeEntry> selectedItem = ttvFiles.getSelectionModel().getSelectedItem();
-            if (selectedItem != null && selectedItem.getValue() instanceof ReviewTreeEntry) {
-                currentFile.set((ReviewTreeEntry) selectedItem.getValue());
+            if (selectedItem != null && selectedItem.getValue() != null) {
+                currentFile.set(selectedItem.getValue());
             } else {
                 currentFile.set(null);
             }
@@ -407,9 +403,7 @@ public class MainView {
         //TODO: Task
         FileCrawler crawler = new FileCrawler();
         List<CrawledEntity> resultList = crawler.crawl(directoryPath);
-        resultList.forEach(ce -> {
-            addCrawledEntity(null, ttvFiles.getRoot(), ce);
-        });
+        resultList.forEach(ce -> addCrawledEntity(null, ttvFiles.getRoot(), ce));
         provider.mergeReviewSet(reviewSetProperty.get());
     }
 
@@ -419,9 +413,7 @@ public class MainView {
             RepositoryDir repositoryDir = reviewSetProperty.get().addDirectory(path);
             final TreeItem<ReviewTreeEntry> childDirItem = createTreeItem(repositoryDir);
             treeItem.getChildren().add(childDirItem);
-            ce.getChildren().forEach(childCe -> {
-                addCrawledEntity(repositoryDir, childDirItem, childCe);
-            });
+            ce.getChildren().forEach(childCe -> addCrawledEntity(repositoryDir, childDirItem, childCe));
         }else{
             if (parentRD != null) {
                 ImageFile imageFile = parentRD.addFile(path.getFileName().toString());

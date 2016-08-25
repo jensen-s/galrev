@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  */
 public class CrawlResultEvaluator {
 
-    private Logger logger = LogManager.getLogger();
+    private final Logger logger = LogManager.getLogger();
     /**
      * Compares the files stored in the repository directory with the found files
      *
@@ -41,12 +41,8 @@ public class CrawlResultEvaluator {
         reposFiles.stream().forEach(p -> reposMap.put(p.toAbsolutePath().toString(), p));
         HashMap<String, Path> foundMap = new HashMap<>();
         foundFiles.stream().forEach(p -> foundMap.put(p.toAbsolutePath().toString(), p));
-        reposFiles.stream().filter(aPath -> !foundMap.containsKey(aPath.toAbsolutePath().toString())).forEach(aPath -> {
-            result.getLostFiles().add(aPath);
-        });
-        foundFiles.stream().filter(aPath -> !reposMap.containsKey(aPath.toAbsolutePath().toString())).forEach(aPath -> {
-            result.getNewFiles().add(aPath);
-        });
+        reposFiles.stream().filter(aPath -> !foundMap.containsKey(aPath.toAbsolutePath().toString())).forEach(aPath -> result.getLostFiles().add(aPath));
+        foundFiles.stream().filter(aPath -> !reposMap.containsKey(aPath.toAbsolutePath().toString())).forEach(aPath -> result.getNewFiles().add(aPath));
         long durationMs = System.currentTimeMillis() - startMs;
         logger.debug("Evaluation result: " + result+" duration: " + durationMs+" ms");
     }

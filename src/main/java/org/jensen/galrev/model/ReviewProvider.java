@@ -19,8 +19,8 @@ import static org.jensen.galrev.model.JpaAccess.transaction;
  * Created by jensen on 09.04.15.
  */
 public class ReviewProvider {
-    private static ReviewProvider instance = new ReviewProvider();
-    private Logger logger = LogManager.getLogger();
+    private static final ReviewProvider instance = new ReviewProvider();
+    private final Logger logger = LogManager.getLogger();
 
 
     public static ReviewProvider getInstance() {

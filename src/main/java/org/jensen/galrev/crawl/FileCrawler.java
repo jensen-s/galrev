@@ -10,12 +10,9 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Created by jensen on 21.05.15.
- */
 public class FileCrawler {
     private CrawledEntity root;
-    private Logger logger = LogManager.getLogger();
+    private final Logger logger = LogManager.getLogger();
 
     public FileCrawler(){
     }

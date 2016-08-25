@@ -16,12 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
-/**
- * Created by jensen on 07.06.15.
- */
 public class CrawlResultEvaluatorTest extends PhysicalFileTest{
     private static final int MAX_FILES_PER_DIR = 15;
     private static final int MIN_FILES_TOP_DIR = 10;
@@ -60,6 +56,8 @@ public class CrawlResultEvaluatorTest extends PhysicalFileTest{
         }
 
         for (int i=0; i<4; i++){
+
+            assertTrue(aDir != null);
             File created = createFile(new File ( aDir.toFile(), "newOne"+i+".txt"));
             added.add(Paths.get(created.getAbsolutePath()));
         }

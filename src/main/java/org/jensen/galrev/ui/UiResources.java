@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
  */
 public class UiResources {
 
-    private static Logger logger = LogManager.getLogger();
+    private static final Logger logger = LogManager.getLogger();
 
     public static Image getImage(Images img){
         final String fileName = "/org/jensen/galrev/ui/images/" + img.getFilename();

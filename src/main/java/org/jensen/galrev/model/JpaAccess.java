@@ -16,7 +16,7 @@ public class JpaAccess {
         JpaAccess.persistenceUnit = persistenceUnit;
     }
 
-    protected static <T> T evaluateTransaction(ITransaction<T> trans) throws PersistenceException{
+    static <T> T evaluateTransaction(ITransaction<T> trans) throws PersistenceException {
         EntityManager em = createEntityManager();
         final T result;
         EntityTransaction trs = em.getTransaction();
@@ -31,7 +31,7 @@ public class JpaAccess {
         return result;
     }
 
-    protected static <T> void transaction(ITransaction<T> trans) throws PersistenceException{
+    static <T> void transaction(ITransaction<T> trans) throws PersistenceException {
         EntityManager em = createEntityManager();
         EntityTransaction trs = em.getTransaction();
         trs.begin();

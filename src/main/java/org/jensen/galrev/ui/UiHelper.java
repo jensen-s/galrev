@@ -16,7 +16,7 @@ import java.util.List;
 
 public class UiHelper {
 
-    private static Logger logger = LogManager.getLogger(UiHelper.class);
+    private static final Logger logger = LogManager.getLogger(UiHelper.class);
 
     /**
      * Adds all repository directories to the given tree root so that they represent the underlying
@@ -29,8 +29,8 @@ public class UiHelper {
      * <p>
      * In this situation a/b would be returned
      *
-     * @param root
-     * @param repositoryDirList
+     * @param root the root tree item
+     * @param repositoryDirList the repository dirs to be filled
      * @return The list of missing paths
      */
     public static List<Path> fillTreeItem(TreeItem<ReviewTreeEntry> root, List<RepositoryDir> repositoryDirList) {

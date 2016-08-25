@@ -5,11 +5,11 @@ import java.util.List;
 /**
  * Created by jensen on 21.05.15.
  */
-public interface ICrawlResultListener {
+interface ICrawlResultListener {
 
     /**
      * Invoked after a number of files has been detected
-     * @param located
+     * @param located the located files
      */
     void filesLocated(List<CrawledEntity> located);
 }

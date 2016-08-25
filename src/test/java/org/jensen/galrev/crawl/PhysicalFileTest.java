@@ -16,7 +16,7 @@ import java.util.Random;
  */
 public class PhysicalFileTest extends GalRevTest {
     private String testBaseDir="testData";
-    protected int totalFiles;
+    int totalFiles;
     private Random rnd;
 
     public String setUp(int minFilesTopTir, int maxFilesPerDir) throws IOException {
@@ -53,7 +53,7 @@ public class PhysicalFileTest extends GalRevTest {
         return totalFiles;
     }
 
-    protected File createFile(File file) throws IOException {
+    File createFile(File file) throws IOException {
         try(PrintWriter pw = new PrintWriter(new FileWriter(file))){
             pw.append(file.getName());
         }

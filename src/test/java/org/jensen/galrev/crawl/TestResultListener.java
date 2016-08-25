@@ -7,7 +7,7 @@ import java.util.List;
  * Created by jensen on 21.05.15.
  */
 public class TestResultListener implements ICrawlResultListener {
-    private List<CrawledEntity> totalFiles = new ArrayList<>();
+    private final List<CrawledEntity> totalFiles = new ArrayList<>();
     private int maxReported;
 
     @Override

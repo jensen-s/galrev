@@ -4,12 +4,9 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by jensen on 06.06.15.
- */
 public class CrawlEvaluation {
-    private List<Path> lostFiles = new ArrayList<>();
-    private List<Path> newFiles = new ArrayList<>();
+    private final List<Path> lostFiles = new ArrayList<>();
+    private final List<Path> newFiles = new ArrayList<>();
 
 
     public List<Path> getLostFiles() {
