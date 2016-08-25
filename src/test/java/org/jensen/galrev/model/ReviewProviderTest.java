@@ -13,9 +13,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * Test class for ReviewProvider
@@ -158,5 +160,47 @@ public class ReviewProviderTest extends GalRevTest {
         List<RepositoryDir> foundSets = sets.stream().filter(s -> name.equals(s.getPath())).collect(Collectors.toList());
         assertThat(foundSets.size(), is(1));
         return foundSets.get(0);
+    }
+
+    @Test
+    public void testCount() {
+        ReviewSet rs = provider.createNewReviewSet();
+        rs.setName("Test set");
+        provider.mergeReviewSet(rs);
+        final String base = "/test/path/";
+        Path baseDir = Paths.get(base);
+        List<Path> files = new ArrayList<>();
+        long fileCount = 17;
+        LongStream.rangeClosed(1, fileCount).forEach(i ->
+                files.add(Paths.get(base + "file" + i + ".fl")));
+
+        provider.addFileList(rs, baseDir, files);
+
+        assertEquals(fileCount, provider.getReviewSize(rs));
+        assertEquals(fileCount, provider.getReviewOpenCount(rs));
+
+        long filesToReview = fileCount / 2;
+        rs = provider.getAllReviewSets().get(0);
+        List<ImageFile> reviewFiles = rs.getDirectories().get(0).getFiles();
+        for (int i = 0; i < filesToReview; i++) {
+            ImageFile aFile = reviewFiles.get(i);
+            if (i % 2 == 0) {
+                aFile.setState(FileState.DELETED);
+            } else {
+                aFile.setState(FileState.REVIEWED);
+            }
+            provider.mergeFile(aFile);
+        }
+
+        assertEquals(fileCount, provider.getReviewSize(rs));
+        assertEquals((fileCount - filesToReview), provider.getReviewOpenCount(rs));
+
+        ReviewSet received = provider.getAllReviewSets().get(0);
+        List<RepositoryDir> dirs = received.getDirectories();
+        dirs.forEach(aDir -> {
+            System.out.println("Dir: " + aDir);
+            aDir.getFiles().forEach(aFile -> System.out.println(
+                    ("> " + aFile.getFilename() + ": " + aFile.getState())));
+        });
     }
 }

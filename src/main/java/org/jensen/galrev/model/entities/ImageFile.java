@@ -38,7 +38,7 @@ public class ImageFile {
         this.filename = filename;
     }
 
-    @Column(name="state")
+    @Column(name = "state", nullable = false)
     @Enumerated(EnumType.STRING)
     public FileState getState() {
         return state;

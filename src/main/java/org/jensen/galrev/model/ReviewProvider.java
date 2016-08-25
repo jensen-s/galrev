@@ -2,6 +2,7 @@ package org.jensen.galrev.model;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jensen.galrev.model.entities.FileState;
 import org.jensen.galrev.model.entities.ImageFile;
 import org.jensen.galrev.model.entities.RepositoryDir;
 import org.jensen.galrev.model.entities.ReviewSet;
@@ -134,4 +135,34 @@ public class ReviewProvider {
         mergeReviewSet(set);
     }
 
+    public long getReviewSize(ReviewSet set) {
+        String jpql = "Select count(imageFile) from ImageFile imageFile, ReviewSet rs where imageFile Member of "
+                + " rs.directories.files and rs = :reviewSet";
+
+        Long result = evaluateTransaction(new TransactionAdapter<Long>() {
+            @Override
+            public Long evaluate(EntityManager em) {
+                TypedQuery<Long> query = em.createQuery(jpql, Long.class);
+                query.setParameter("reviewSet", set);
+                return query.getSingleResult();
+            }
+        });
+        return result != null ? result : 0;
+    }
+
+    public long getReviewOpenCount(ReviewSet set) {
+        String jpql = "Select count(imageFile) from ImageFile imageFile, ReviewSet rs where imageFile Member of "
+                + " rs.directories.files and rs = :reviewSet and imageFile.state = :state";
+
+        Long result = evaluateTransaction(new TransactionAdapter<Long>() {
+            @Override
+            public Long evaluate(EntityManager em) {
+                TypedQuery<Long> query = em.createQuery(jpql, Long.class);
+                query.setParameter("reviewSet", set);
+                query.setParameter("state", FileState.NEW);
+                return query.getSingleResult();
+            }
+        });
+        return result != null ? result : 0;
+    }
 }
