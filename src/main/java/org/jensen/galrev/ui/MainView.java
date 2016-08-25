@@ -205,12 +205,20 @@ public class MainView {
         miRenameReviewSet.setDisable(reviewMissing);
         contentPane.setDisable(reviewMissing);
         if (!reviewMissing) {
-            reviewSetNameProperty.setValue(newValue.getName());
             fillTree(newValue.getDirectories());
         } else {
-            reviewSetNameProperty.setValue("");
             fillTree(Collections.emptyList());
         }
+        setReviewDescription();
+    }
+
+    private void setReviewDescription() {
+        ReviewSet set = reviewSetProperty.get();
+        String description = "";
+        if (set != null) {
+            description = set.getName() + " (" + provider.getReviewOpenCount(set) + " / " + provider.getReviewSize(set) + ")";
+        }
+        reviewSetNameProperty.setValue(description);
     }
 
     private void layoutImageView() {
@@ -406,6 +414,7 @@ public class MainView {
         ReviewTreeEntry treeEntry = currentFile.get();
         if (treeEntry != null) {
             treeEntry.setFileState(FileState.REVIEWED);
+            setReviewDescription();
         }
     }
 
@@ -453,6 +462,7 @@ public class MainView {
         ReviewTreeEntry treeEntry = currentFile.get();
         if (treeEntry != null) {
             treeEntry.setFileState(FileState.MARKED_FOR_DELETION);
+            setReviewDescription();
         }
     }
 
@@ -471,6 +481,8 @@ public class MainView {
         ReviewTreeEntry treeEntry = currentFile.get();
         if (treeEntry != null) {
             treeEntry.setFileState(FileState.NEW);
+            setReviewDescription();
+
         }
     }
     public static void terminate(){
