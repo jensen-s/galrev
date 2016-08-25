@@ -1,8 +1,11 @@
 package org.jensen.galrev.model.entities;
 
+import com.google.common.base.Strings;
+
 import javax.persistence.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -18,6 +21,7 @@ public class ReviewSet {
     protected static final String SEQ_ID = DbConstants.SEQ_PREFIX+"ReviewSet";
 
     private String name;
+    private String deletedFlag;
     private long id;
     private List<RepositoryDir> directories;
 
@@ -39,6 +43,28 @@ public class ReviewSet {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Column(name = "deleted_flag")
+    public String getDeletedFlag() {
+        return deletedFlag;
+    }
+
+    public void setDeletedFlag(String deletedFlag) {
+        this.deletedFlag = deletedFlag;
+    }
+
+    @Transient
+    public boolean isValid() {
+        return Strings.isNullOrEmpty(deletedFlag);
+    }
+
+    public void setValid(boolean valid) {
+        if (valid) {
+            setDeletedFlag(null);
+        } else {
+            setDeletedFlag("Deleted at " + new Date().toString());
+        }
     }
 
     @OneToMany(cascade = CascadeType.ALL)

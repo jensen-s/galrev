@@ -32,7 +32,7 @@ public class ReviewProvider {
         return evaluateTransaction(new TransactionAdapter<List<ReviewSet>>(){
             @Override
             public List<ReviewSet> evaluate(EntityManager em) {
-                TypedQuery<ReviewSet> query = em.createQuery("select rs from ReviewSet rs", ReviewSet.class);
+                TypedQuery<ReviewSet> query = em.createQuery("select rs from ReviewSet rs where deletedFlag is null", ReviewSet.class);
                 return query.getResultList();
             }
         });
@@ -67,6 +67,13 @@ public class ReviewProvider {
     }
 
 
+    public ReviewSet deleteReviewSet(ReviewSet toDelete) {
+        toDelete.setValid(false);
+        if (toDelete.getId() > 0) {
+            toDelete = mergeReviewSet(toDelete);
+        }
+        return toDelete;
+    }
 
     public ReviewSet mergeReviewSet(ReviewSet toMerge){
         logger.debug("Merge set " + toMerge);
