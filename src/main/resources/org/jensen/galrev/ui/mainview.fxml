@@ -17,10 +17,10 @@
                         <ToolBar prefHeight="40.0" prefWidth="200.0">
                           <items>
                             <Button fx:id="btnPrev" mnemonicParsing="false" onAction="#prev" />
-                              <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#delete" />
-                              <Button fx:id="btnUndo" mnemonicParsing="false" onAction="#undo" />
+                              <Button fx:id="btnDelete" disable="true" mnemonicParsing="false" onAction="#delete"/>
+                              <Button fx:id="btnUndo" disable="true" mnemonicParsing="false" onAction="#undo"/>
                               <Button fx:id="btnAdd" mnemonicParsing="false" onAction="#add" />
-                              <Button fx:id="btnAccept" mnemonicParsing="false" onAction="#accept" />
+                              <Button fx:id="btnAccept" disable="true" mnemonicParsing="false" onAction="#accept"/>
                               <Button fx:id="btnNext" mnemonicParsing="false" onAction="#next" />
                           </items>
                         </ToolBar>

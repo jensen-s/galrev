@@ -146,19 +146,44 @@ public class MainView {
                 txtCurrentFile.setText("");
                 ivDisplayedImage.imageProperty().setValue(null);
             } else {
-                ReviewTreeEntry ReviewTreeEntry = currentFile.getValue();
-                txtCurrentFile.setText(ReviewTreeEntry.getImageFile().getFilename());
-                if (ReviewTreeEntry.getPath() != null) {
+                ReviewTreeEntry treeEntry = currentFile.getValue();
+                txtCurrentFile.setText(treeEntry.getImageFile().getFilename());
+                if (treeEntry.getPath() != null) {
                     try {
-                        final Image image = retrieveImage(ReviewTreeEntry);
+                        final Image image = retrieveImage(treeEntry);
                         ivDisplayedImage.setImage(image);
                         layoutImageView();
                         ivDisplayedImage.setCache(true);
                         ivDisplayedImage.setVisible(true);
                     } catch (FileNotFoundException e) {
-                        logger.error("File not existent: " + ReviewTreeEntry.getPath());
+                        logger.error("File not existent: " + treeEntry.getPath());
                         // TODO: Show error
                     }
+                }
+                if (treeEntry.getImageFile() != null) {
+                    switch (treeEntry.getImageFile().getState()) {
+                        case NEW:
+                            btnAccept.setDisable(false);
+                            btnDelete.setDisable(false);
+                            btnUndo.setDisable(true);
+                            break;
+                        case REVIEWED:
+                        case MARKED_FOR_DELETION:
+                            btnAccept.setDisable(true);
+                            btnDelete.setDisable(true);
+                            btnUndo.setDisable(false);
+                            break;
+                        case DELETED:
+                        case LOST:
+                            btnAccept.setDisable(false);
+                            btnDelete.setDisable(false);
+                            btnUndo.setDisable(false);
+                            break;
+                    }
+                } else {
+                    btnAccept.setDisable(false);
+                    btnDelete.setDisable(false);
+                    btnUndo.setDisable(false);
                 }
             }
         });
@@ -307,15 +332,6 @@ public class MainView {
                                 setTooltip(null);
                             }
                             displayString = treeEntry.getFileName();
-//                            if (treeEntry.getImageFile() != null) {
-//                                displayString = ((ReviewTreeEntry) treeEntry).getImageFile().getFilename();
-//                            } else if (path != null) {
-//                                displayString = path.getFileName().toString();
-//                            } else if (treeEntry.getRepositoryDir() != null) {
-//                                displayString = treeEntry.getRepositoryDir().getPath();
-//                            } else {
-//                                displayString = "xxx";
-//                            }
                             setText(displayString);
                         }
                     } else {
@@ -337,9 +353,11 @@ public class MainView {
         colAccept.setCellFactory(param -> new TreeTableCell<ReviewTreeEntry, Boolean>() {
             @Override
             protected void updateItem(Boolean item, boolean empty) {
-                if (Boolean.TRUE.equals(item)) {
+                if (!empty && Boolean.TRUE.equals(item)) {
                     ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.ACCEPT));
                     setGraphic(iv);
+                } else {
+                    setGraphic(null);
                 }
             }
         });
@@ -347,9 +365,11 @@ public class MainView {
         colDelete.setCellFactory(param -> new TreeTableCell<ReviewTreeEntry, Boolean>() {
             @Override
             protected void updateItem(Boolean item, boolean empty) {
-                if (Boolean.TRUE.equals(item)) {
+                if (!empty && Boolean.TRUE.equals(item)) {
                     ImageView iv = new ImageView(UiResources.getImage(UiResources.Images.DELETE));
                     setGraphic(iv);
+                } else {
+                    setGraphic(null);
                 }
             }
         });
@@ -383,7 +403,10 @@ public class MainView {
 
     @FXML
     void accept(ActionEvent event) {
-
+        ReviewTreeEntry treeEntry = currentFile.get();
+        if (treeEntry != null) {
+            treeEntry.setFileState(FileState.REVIEWED);
+        }
     }
 
     @FXML
@@ -427,9 +450,9 @@ public class MainView {
 
     @FXML
     void delete(ActionEvent event) {
-        ReviewTreeEntry ReviewTreeEntry = currentFile.get();
-        if (ReviewTreeEntry != null) {
-            ReviewTreeEntry.setFileState(FileState.MARKED_FOR_DELETION);
+        ReviewTreeEntry treeEntry = currentFile.get();
+        if (treeEntry != null) {
+            treeEntry.setFileState(FileState.MARKED_FOR_DELETION);
         }
     }
 
@@ -445,7 +468,10 @@ public class MainView {
 
     @FXML
     void undo(ActionEvent event) {
-
+        ReviewTreeEntry treeEntry = currentFile.get();
+        if (treeEntry != null) {
+            treeEntry.setFileState(FileState.NEW);
+        }
     }
     public static void terminate(){
         executor.shutdown();
